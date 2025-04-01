@@ -37,14 +37,13 @@ Access the web interface at [127.0.0.1:8000/package-analysis](http://127.0.0.1:8
 
 ![Dashboard Screenshot](images/dashboard.png)
 
-Tech Stack: Django
-
-This dashboard shows a web interface built using the Django framework.
+On the right side of the dashboard, the user can enter the package name and package version of a package available on crates.io. After submitting this information, the package-analysis tool will analyze the package and display the reports once the analysis is complete.
 
 
 
 # Reports
 
 ![Report Detail](images/report.png)
+
 
 
