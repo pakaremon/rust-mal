@@ -10,6 +10,6 @@ This dashboard shows a web interface built using the Django framework.
 
 # Reports
 
-![Report Detail](images/repo.png)
+![Report Detail](images/report.png)
 
 
