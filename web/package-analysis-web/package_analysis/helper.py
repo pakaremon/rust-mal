@@ -9,6 +9,8 @@ import git
 from collections import defaultdict
 from functools import lru_cache
 
+from bs4 import BeautifulSoup
+
 
 
 class Helper:
@@ -125,6 +127,35 @@ class Helper:
             
         packages =  Helper.fetch_package_list()
         return packages 
+    
+    @staticmethod
+    def get_pypi_packages():
+        import csv
+        curent_path = os.path.dirname(os.path.abspath(__file__))
+        pypi_packages_path = os.path.join(curent_path, 'resources', 'pypi_package_names.csv')
+        if os.path.exists(pypi_packages_path):
+            with open(pypi_packages_path, 'r') as file:
+                reader = csv.reader(file)
+                # skip the header
+                next(reader)
+                packages = [row[0] for row in reader]
+            return {"packages": packages}
+        
+        url = "https://pypi.org/simple/"
+        response = requests.get(url)
+        soup = BeautifulSoup(response.text, "html.parser")
+
+        package_names = [a.text for a in soup.find_all('a')]
+
+        with open(pypi_packages_path, 'w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(["Package Name"])
+            for package in package_names:
+                writer.writerow([package])
+        
+        return {"packages": package_names}
+
+
     
     @staticmethod
     def handle_uploaded_file(file_path):

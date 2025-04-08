@@ -50,5 +50,5 @@ class PackageSubmitForm(forms.Form):
             ('maven_central', 'Maven Central'),
             ('packagist', 'Packagist'),
         ],
-        widget=forms.Select(attrs={'class': 'form-control'})
+        widget=forms.Select(attrs={'class': 'form-control', 'id': 'ecosystem'})
     )

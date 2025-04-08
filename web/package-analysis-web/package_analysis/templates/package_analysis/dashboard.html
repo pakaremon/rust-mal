@@ -535,6 +535,10 @@
                             <div id="submit-with-link" >
                                 <form id="submitForm" onsubmit="event.preventDefault(); submitForm();" method="post" action="{% url 'submit_sample' %}">
                                     {% csrf_token %}
+                                    <br>
+                                    {{ form.ecosystem.label_tag }}
+                                    {{ form.ecosystem }}
+                                    <br>
                                     <!-- {{ form.as_p }}     -->
                                       {{ form.package_name.label_tag }}
                                       {{ form.package_name }}     
@@ -542,9 +546,7 @@
                                     <div class="suggestions" id="suggestions"></div>
                                     {{ form.package_version.label_tag }}
                                     {{ form.package_version }}
-                                    <br>
-                                    {{ form.ecosystem.label_tag }}
-                                    {{ form.ecosystem }}
+
                                     <br>
                                     <div class="text-center">
                                     <button type="submit" class="btn btn-primary btn-lg">Submit</button>

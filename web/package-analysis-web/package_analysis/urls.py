@@ -7,6 +7,9 @@ urlpatterns = [
 
     path("", views.dashboard, name="dashboard"),
     path("get_rust_packages/", views.get_rust_packages, name="get_rust_packages"),
+    path("get_pypi_packages/", views.get_pypi_packages, name="get_pypi_packages"),
+    # get_pypi_versions is used to get the available versions of the package in pypi.
+    path("get_pypi_versions/", views.get_pypi_versions, name="get_pypi_versions"),
     path("configure/", views.configure, name="configure"),
     path("analyze/", views.analyze, name="analyze"),
     path("results/", views.results, name="results"),

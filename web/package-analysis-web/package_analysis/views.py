@@ -136,6 +136,32 @@ def analyzed_samples(request):
 def get_rust_packages(request):
     return JsonResponse(Helper.get_rust_packages())
 
+def get_pypi_packages(request):
+    return JsonResponse(Helper.get_pypi_packages() )
+
+def get_pypi_versions(request):
+    package_name = request.GET.get('package_name', None)
+    if not package_name:
+        return JsonResponse({'error': 'Package name is required'}, status=400)
+    
+    import requests
+    def get_versions(package_name):
+        """Get all available versions of a package from PyPI."""
+        url = f"https://pypi.org/pypi/{package_name}/json"
+        response = requests.get(url)
+
+        if response.status_code == 200:
+            data = response.json()
+            versions = list(data['releases'].keys())  # Directly convert to list
+            return versions
+        else:
+            return []  # Return empty list if request fails
+         
+    # Get the versions of the package
+    versions = get_versions(package_name)
+
+    return JsonResponse({"versions":versions})
+
 
 def configure(request):
     return render(request, "package_analysis/configureSubmit.html")
