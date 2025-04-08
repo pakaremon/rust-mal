@@ -44,6 +44,4 @@ On the right side of the dashboard, the user can enter the package name and pack
 # Reports
 
 ![Report Detail](images/report.png)
-
-
-
+The report includes detailed information such as files, commands executed, domains accessed, and IP addresses involved. This data helps users understand the behavior and potential risks associated with the analyzed package.
