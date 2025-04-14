@@ -156,6 +156,25 @@ class Helper:
         return {"packages": package_names}
 
 
+    @staticmethod
+    def get_npm_packages():
+        # https://github.com/nice-registry/all-the-package-names/tree/master
+        current_path = os.path.dirname(os.path.abspath(__file__))
+        npm_packages_path = os.path.join(current_path, 'resources', 'npm_package_names.json')
+        if os.path.exists(npm_packages_path):
+            with open(npm_packages_path, 'r') as file:
+                packages = json.load(file)
+            return {"packages": packages}
+        
+        url_npm_names = 'https://github.com/nice-registry/all-the-package-names/raw/refs/heads/master/names.json'
+        response = requests.get(url_npm_names) 
+        if response.status_code == 200:
+            data = response.json()
+            with open(npm_packages_path, 'w') as file:
+                json.dump(data, file)
+            return {"packages": data}
+        else:
+            raise ValueError(f"Failed to fetch npm package names: {response.status_code}")  
     
     @staticmethod
     def handle_uploaded_file(file_path):
@@ -166,11 +185,139 @@ class Helper:
         package_version = file_path.split("/")[-1].split("-")[1].split(".crate")[0]
         return Helper.run_package_analysis(package_name, package_version, "crates.io", local_path=local_path)
 
-        
 
     @staticmethod
+    def run_oss_find_source(package_name, package_version, ecosystem):
+        
+        ecosystem = Helper.transfer_ecosystem(ecosystem)
+        folder_path = os.path.join(tempfile.gettempdir(), "oss-find-source")
+        dst = os.path.join(folder_path, f"{package_name}.sarif")
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+        
+        if Helper.is_windows_environment():
+            executable = r"D:\HocTap\projectDrVuDucLy\tools\OSSGadget-0.1.422\src\oss-find-source\bin\Debug\net8.0\oss-find-source.exe"
+        else:
+            executable = r"oss-find-source"
+
+        command = f'{executable} -o "{dst}" --format sarifv2 pkg:{ecosystem}/{package_name}'
+
+        print(f"find source for package: {package_name}, version: {package_version}, ecosystem: {ecosystem}")
+        print(f"Command: {command}")
+        print(f"Output saved to {dst}")
+
+        def parse_sarif(sarif_file):
+            try:
+                with open(os.path.join(sarif_file), 'r') as f:
+                    data = json.load(f)
+                    url_sources = []
+                    for candidate in data['runs'][0]['results']:
+                        if candidate:
+                            url_sources.append(candidate['locations'][0]['physicalLocation']['address']['fullyQualifiedName'])
+                        
+                    return url_sources
+            except json.JSONDecodeError as e:
+                print(f"Error decoding JSON: {e}")
+                return []
+            except FileNotFoundError as e:
+                print(f"File not found: {e}")
+                return []
+            
+        try:
+            if os.path.exists(dst):
+                url_sources = parse_sarif(dst)
+                return url_sources
+            
+            subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
+            print(f"Command executed successfully: {command}")
+
+            url_sources = parse_sarif(dst)
+            print(f"URL sources found: {url_sources}")
+            
+            return url_sources
+        except subprocess.CalledProcessError as e:
+            print(f"Command failed with error: {e.stderr}")
+            raise
+
+        
+
+        
+
+        
+
+
+    @staticmethod
+    def transfer_ecosystem(ecosystem):
+        if ecosystem == "crates.io":
+            return "cargo"
+        elif ecosystem == "pypi":
+            return "pypi"
+        elif ecosystem == "npm":
+            return "npm"
+        elif ecosystem == "rubygems":
+            return "gem"
+        else:
+            raise ValueError(f"Unknown ecosystem: {ecosystem}")
+
+    @staticmethod
+    def run_oss_squats(package_name, package_version, ecosystem):
+
+        print(f"find typosquats for package: {package_name}, version: {package_version}, ecosystem: {ecosystem}")
+        ecosystem = Helper.transfer_ecosystem(ecosystem)
+        folder_path = os.path.join(tempfile.gettempdir(), "oss-find-squats")
+        dst = os.path.join(folder_path, f"{package_name}.sarif")
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+
+        if Helper.is_windows_environment():
+            executable = r"D:\HocTap\projectDrVuDucLy\tools\OSSGadget-0.1.422\src\oss-find-squats\bin\Debug\net8.0\oss-find-squats.exe" 
+        else:
+            executable = r"oss-find-squats"
+        command = f'{executable} -o "{dst}" --format sarifv2 pkg:{ecosystem}/{package_name}'
+
+
+        def parse_sarif(sarif_file):
+            try:
+                with open(os.path.join(sarif_file), 'r') as f:
+                    data = json.load(f)
+                    package_names = []
+                    for candidate in data['runs'][0]['results']:
+                        if candidate['message']['text'].startswith('Potential Squat candidate'):
+                            package_names.append(candidate['locations'][0]['physicalLocation']['address']['name'].split('/')[-1])
+                        
+                    return package_names
+            except json.JSONDecodeError as e:
+                print(f"Error decoding JSON: {e}")
+                return []
+            except FileNotFoundError as e:
+                print(f"File not found: {e}")
+                return []
+                
+        try:
+
+            if os.path.exists(dst):
+                package_names = parse_sarif(dst)
+                return package_names
+            
+            subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
+            print(f"Command executed successfully: {command}")
+
+            print(f"Output saved to {dst}")
+            package_names = parse_sarif(dst)
+            print(f"Package names found: {package_names}")
+            
+            return package_names
+
+        except subprocess.CalledProcessError as e:
+            print(f"Command failed with error: {e.stderr}")
+            raise #always raise the error to the caller
+        
+        
+
+ 
+    @staticmethod
     def run_package_analysis(package_name, package_version, ecosystem, local_path=None):
-        print(f" Run Package Name: {package_name}, Package Version: {package_version}, Ecosystem: {ecosystem}")
+        print(f" Run package-analysis: Package Name: {package_name}, Package Version: {package_version}, Ecosystem: {ecosystem}")
         # ./scripts/run_analysis.sh -ecosystem Rust -package littlest -version littlest.0.0.0  -local /path/fijiwashere12323-0.0.0-r0.apk -sandbox-image 'wolfi-apk/dynamic-analysis'   -analysis-command 'analyze_wolfi_apk.py' -mode dynamic -nopull 
         # run the script with the package name, version, ecosystem and the path to the apk
         # the script should return the results of the analysis
@@ -178,10 +325,13 @@ class Helper:
 
         script_path = Helper.find_script_path()
         if local_path:
-            command = f"wsl {script_path} -ecosystem {ecosystem} -package {package_name} -version {package_version}  -mode dynamic -local {local_path}"
+            command = f"{script_path} -ecosystem {ecosystem} -package {package_name} -version {package_version}  -mode dynamic -local {local_path}"
             print(command)
         else:
-            command = f"wsl {script_path} -ecosystem {ecosystem} -package {package_name} -version {package_version}  -mode dynamic" 
+            command = f"{script_path} -ecosystem {ecosystem} -package {package_name} -version {package_version}  -mode dynamic" 
+
+        if Helper.is_windows_environment():
+            command = f"wsl {command}"
 
         try:
             start_time = time.time()

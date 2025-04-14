@@ -95,7 +95,17 @@
         <li><strong>Package Name:</strong> {{ report.package.package_name }}</li>
         <li><strong>Package Version:</strong> {{ report.package.package_version }}</li>
         <li><strong>Ecosystem:</strong> {{ report.package.ecosystem }}</li>
+        {% if report.source_url %}
+            <li><strong>Source code:</strong>
+            <ul>
+                {% for url in report.source_url %}
+                <li><a href="{{ url }}" target="_blank">{{ url }}</a></li>
+                {% endfor %}
+            </ul>
+            </li>
+        {% endif %}
         <li><strong>Analysis Completed Time:</strong> {{ report.time|floatformat:2 }} seconds</li>
+        
     </ul>
 
     <h2>Analysis Summary</h2>
@@ -179,7 +189,23 @@
         </ul>
     </div>
     <button class="toggle-btn">Show More</button>
+    
+    <h2> Typosquatting candidates</h2>
+    <div class="collapsible">
+        <ul>
+            {% for candidate in report.typosquatting_candidates %}
+                <li>{{ candidate }}</li>
+            {% empty %}
+                <li>No typosquatting candidates</li>
+            {% endfor %}
+        </ul>
+    </div>
+    <button class="toggle-btn">Show More</button>
 </div>
+
+ 
+
+
 
 <a href="{% url 'analyzed_samples' %}">Back to Analyzed Samples</a>
 {% endblock %}

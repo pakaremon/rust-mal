@@ -10,6 +10,7 @@ from django.core.files.storage import FileSystemStorage
 
 from .models import Package, Report
 from collections import Counter
+from concurrent.futures import ThreadPoolExecutor
 
 
 
@@ -37,6 +38,8 @@ def save_report(reports):
         ips=[dict(t) for t in {tuple(ip.items()) for ip in (reports['install']['ips'] + reports['import']['ips'])}],
         commands=list({tuple(cmd) if isinstance(cmd, list) else cmd for cmd in reports['install']['commands'] + reports['import']['commands']}),
         syscalls=list(syscalls_counter.items()),
+        typosquatting_candidates=reports['typo_candidates'],
+        source_url=reports['sources'],
     )
     the_report.save()
 
@@ -57,8 +60,21 @@ def submit_sample(request):
             # Process the form data (e.g., save to database, call an API, etc.)
             print(f"Package Name: {package_name}, Package Version: {package_version}, Ecosystem: {ecosystem}")
 
-            reports = Helper.run_package_analysis(package_name,
-                                                   package_version, ecosystem)
+            with ThreadPoolExecutor() as executor:
+                future_reports = executor.submit(Helper.run_package_analysis, package_name, package_version, ecosystem)
+                future_typosquatting_candidates = executor.submit(Helper.run_oss_squats, package_name, package_version, ecosystem)
+                future_sources = executor.submit(Helper.run_oss_find_source, package_name, package_version, ecosystem)
+
+                reports = future_reports.result()
+                typo_candidates = future_typosquatting_candidates.result()
+                sources = future_sources.result()
+
+                reports['sources'] = sources
+                reports['typo_candidates'] = typo_candidates
+
+                print("Typo candidates: ", reports['typo_candidates'])
+
+            
             save_report(reports)
             latest_report = Report.objects.latest('id')
             reports['id'] = latest_report.id
@@ -138,6 +154,33 @@ def get_rust_packages(request):
 
 def get_pypi_packages(request):
     return JsonResponse(Helper.get_pypi_packages() )
+
+def get_npm_packages(request):
+    return JsonResponse(Helper.get_npm_packages())
+
+def get_npm_versions(request):
+    import requests
+    def get_package_versions(package_name):
+        url = f'https://registry.npmjs.org/{package_name}'
+        
+        response = requests.get(url)
+        
+        if response.status_code == 200:
+            data = response.json()
+            versions = list(data.get('versions', {}).keys())
+            latest_version = data.get('dist-tags', {}).get('latest')
+            
+            return versions
+        else:
+            print(f"Failed to fetch {package_name}: {response.status_code}")
+            return None
+        
+    package_name = request.GET.get('package_name', None)
+    if not package_name:
+        return JsonResponse({'error': 'Package name is required'}, status=400)
+    
+    package_versions = get_package_versions(package_name)
+    return JsonResponse({"versions": package_versions})
 
 def get_pypi_versions(request):
     package_name = request.GET.get('package_name', None)

@@ -10,8 +10,6 @@ class Package(models.Model):
     def __str__(self):
         return f"{self.package_name} {self.package_version} {self.ecosystem}"
     
-    
-
 class Report(models.Model):
     package = models.OneToOneField(Package, on_delete=models.CASCADE, related_name='report')
     time = models.FloatField()
@@ -24,8 +22,12 @@ class Report(models.Model):
     ips = models.JSONField(default=list)  # Provide a default value
     commands = models.JSONField(default=list)  # Provide a default value
     syscalls = models.JSONField(default=list)  # Provide a default value
-
-
+    # oss-find-typosquatting
+    typosquatting_candidates = models.JSONField(default=list)  # Provide a default value
+    # oss-find-source
+    source_url = models.JSONField(default=list)  # Provide a default value
 
     def __str__(self):
         return f"{self.package} {self.time} (seconds)"
+    
+

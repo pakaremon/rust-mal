@@ -10,6 +10,10 @@ urlpatterns = [
     path("get_pypi_packages/", views.get_pypi_packages, name="get_pypi_packages"),
     # get_pypi_versions is used to get the available versions of the package in pypi.
     path("get_pypi_versions/", views.get_pypi_versions, name="get_pypi_versions"),
+    # get npm
+    path("get_npm_packages/", views.get_npm_packages, name="get_npm_packages"),
+    path("get_npm_versions/", views.get_npm_versions, name="get_npm_versions"),
+    
     path("configure/", views.configure, name="configure"),
     path("analyze/", views.analyze, name="analyze"),
     path("results/", views.results, name="results"),
