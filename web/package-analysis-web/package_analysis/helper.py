@@ -155,6 +155,25 @@ class Helper:
         
         return {"packages": package_names}
 
+    @staticmethod
+    def get_packagist_packages():
+        # https://packagist.org/packages/list.json
+        current_path = os.path.dirname(os.path.abspath(__file__))
+        packagist_packages_path = os.path.join(current_path, 'resources', 'packagist_package_names.json')
+        if os.path.exists(packagist_packages_path):
+            with open(packagist_packages_path, 'r') as file:
+                packages = json.load(file)
+            return {"packages": packages.get('packageNames', [])}
+        
+        url_packagist_names = 'https://packagist.org/packages/list.json'
+        response = requests.get(url_packagist_names) 
+        if response.status_code == 200:
+            data = response.json()
+            with open(packagist_packages_path, 'w') as file:
+                json.dump(data, file)
+            return {"packages": data.get('packageNames', [])}
+        else:
+            raise ValueError(f"Failed to fetch packagist package names: {response.status_code}")
 
     @staticmethod
     def get_npm_packages():

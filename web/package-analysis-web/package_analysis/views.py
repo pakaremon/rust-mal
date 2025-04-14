@@ -158,6 +158,40 @@ def get_pypi_packages(request):
 def get_npm_packages(request):
     return JsonResponse(Helper.get_npm_packages())
 
+@staticmethod
+def get_packagist_packages(request):
+    return JsonResponse(Helper.get_packagist_packages())
+
+@staticmethod
+def get_packagist_versions(request):
+    import requests
+    def get_package_versions(package_name):
+        url = f"https://repo.packagist.org/p2/{package_name}.json"
+
+        response = requests.get(url)
+        if response.status_code == 200:
+            data = response.json()
+            results = []
+            for version in data['packages'].get(package_name, []):
+                results.append(version['version'])
+            return results
+        else:
+            return []  # Return an empty list if the request fails
+    
+    package_name = request.GET.get('package_name', None)
+    if not package_name:
+        return JsonResponse({'error': 'Package name is required'}, status=400)
+    
+    package_versions = get_package_versions(package_name)
+    return JsonResponse({"versions": package_versions})
+
+
+
+       
+           
+
+
+
 def get_npm_versions(request):
     import requests
     def get_package_versions(package_name):

@@ -69,6 +69,21 @@ async function get_npm_versions(package_name) {
     }
 }
 
+// Function to get the package versions for packagist packages
+async function get_packagist_versions(package_name) {
+    try {
+        let currentUrl = window.location.href;
+        currentUrl = currentUrl.split('/package-analysis')[0] + '/package-analysis';
+        currentUrl = currentUrl + '/get_packagist_versions?package_name=' + encodeURIComponent(package_name);
+        let response = await fetch(currentUrl);
+        let data = await response.json();
+        return data;
+    } catch (error) { 
+        console.error('Error:', error);
+        return [];
+    }
+}
+
 
 
 /*
@@ -111,6 +126,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     package_names = packages.packages;
                 } else if (ecosystem.value === "npm") {
                     package_names = packages.packages;
+                } else if (ecosystem.value === "packagist") {
+                    package_names = packages.packages;
                 }
 
                 if (value) {
@@ -137,6 +154,9 @@ document.addEventListener("DOMContentLoaded", () => {
                                 } else if (ecosystem.value === "npm") {
                                     const npmData = await get_npm_versions(package_name);
                                     versions = npmData.versions.slice().reverse();
+                                } else if (ecosystem.value === "packagist") {
+                                    const packagistData = await get_packagist_versions(package_name);
+                                    versions = packagistData.versions.slice();
                                 }
 
 

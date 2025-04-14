@@ -13,7 +13,10 @@ urlpatterns = [
     # get npm
     path("get_npm_packages/", views.get_npm_packages, name="get_npm_packages"),
     path("get_npm_versions/", views.get_npm_versions, name="get_npm_versions"),
-    
+    # get packagist
+    path("get_packagist_packages/", views.get_packagist_packages, name="get_packagist_packages"),
+    path("get_packagist_versions/", views.get_packagist_versions, name="get_packagist_versions"),
+     
     path("configure/", views.configure, name="configure"),
     path("analyze/", views.analyze, name="analyze"),
     path("results/", views.results, name="results"),
