@@ -198,7 +198,7 @@ class Helper:
         if Helper.is_windows_environment():
             executable = r"D:\HocTap\projectDrVuDucLy\tools\OSSGadget-0.1.422\src\oss-find-source\bin\Debug\net8.0\oss-find-source.exe"
         else:
-            executable = r"oss-find-source"
+            executable = r"/home/azure_cong/tools/OSSGadget_linux_0.1.422/oss-find-source"
 
         command = f'{executable} -o "{dst}" --format sarifv2 pkg:{ecosystem}/{package_name}'
 
@@ -272,7 +272,7 @@ class Helper:
         if Helper.is_windows_environment():
             executable = r"D:\HocTap\projectDrVuDucLy\tools\OSSGadget-0.1.422\src\oss-find-squats\bin\Debug\net8.0\oss-find-squats.exe" 
         else:
-            executable = r"oss-find-squats"
+            executable = r"/home/azure_cong/tools/OSSGadget_linux_0.1.422/oss-find-squats"
         command = f'{executable} -o "{dst}" --format sarifv2 pkg:{ecosystem}/{package_name}'
 
 
