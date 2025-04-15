@@ -1,7 +1,7 @@
 async function load() {
     try {
         let currentUrl = window.location.href;
-        currentUrl = currentUrl.split('/package-analysis')[0] + '/package-analysis';
+        currentUrl = currentUrl.split('/').slice(0, -2).join('/');
 
         const package_ecosystem = document.getElementById("ecosystem").value;
 
@@ -43,7 +43,7 @@ async function load() {
 async function get_pypi_versions(package_name) {
     try {
         let currentUrl = window.location.href;
-        currentUrl = currentUrl.split('/package-analysis')[0] + '/package-analysis';
+        currentUrl = currentUrl.split('/').slice(0, -2).join('/');
         currentUrl = currentUrl + '/get_pypi_versions?package_name=' + encodeURIComponent(package_name);
         let response = await fetch(currentUrl);
         let data = await response.json();
@@ -58,7 +58,7 @@ async function get_pypi_versions(package_name) {
 async function get_npm_versions(package_name) {
     try {
         let currentUrl = window.location.href;
-        currentUrl = currentUrl.split('/package-analysis')[0] + '/package-analysis';
+        currentUrl = currentUrl.split('/').slice(0, -2).join('/');
         currentUrl = currentUrl + '/get_npm_versions?package_name=' + encodeURIComponent(package_name);
         let response = await fetch(currentUrl);
         let data = await response.json();
@@ -73,8 +73,23 @@ async function get_npm_versions(package_name) {
 async function get_packagist_versions(package_name) {
     try {
         let currentUrl = window.location.href;
-        currentUrl = currentUrl.split('/package-analysis')[0] + '/package-analysis';
+        currentUrl = currentUrl.split('/').slice(0, -2).join('/');
         currentUrl = currentUrl + '/get_packagist_versions?package_name=' + encodeURIComponent(package_name);
+        let response = await fetch(currentUrl);
+        let data = await response.json();
+        return data;
+    } catch (error) { 
+        console.error('Error:', error);
+        return [];
+    }
+}
+
+// Function to get the package versions for rubygems packages
+async function get_rubygems_versions(package_name) {
+    try {
+        let currentUrl = window.location.href;
+        currentUrl = currentUrl.split('/').slice(0, -2).join('/');
+        currentUrl = currentUrl + '/get_rubygems_versions?package_name=' + encodeURIComponent(package_name);
         let response = await fetch(currentUrl);
         let data = await response.json();
         return data;
@@ -128,6 +143,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     package_names = packages.packages;
                 } else if (ecosystem.value === "packagist") {
                     package_names = packages.packages;
+                } else if (ecosystem.value === "rubygems") {
+                    package_names = packages.packages;
                 }
 
                 if (value) {
@@ -157,6 +174,9 @@ document.addEventListener("DOMContentLoaded", () => {
                                 } else if (ecosystem.value === "packagist") {
                                     const packagistData = await get_packagist_versions(package_name);
                                     versions = packagistData.versions.slice();
+                                } else if (ecosystem.value === "rubygems") {
+                                    const rubygemsData = await get_rubygems_versions(package_name);
+                                    versions = rubygemsData.versions.slice();
                                 }
 
 

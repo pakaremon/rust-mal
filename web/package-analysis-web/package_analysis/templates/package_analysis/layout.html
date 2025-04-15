@@ -3,7 +3,7 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>package-analysis</title>
+        <title>packguard.dev</title>
         <link href="{% static 'styles_package_analysis.css' %}" rel="stylesheet" type="text/css" />
         <link href="{% static 'vendor.css' %}" rel="stylesheet" type="text/css" />
         <link href="{% static 'main.css' %}" rel="stylesheet" type="text/css" />
@@ -43,12 +43,12 @@
 
             </script>
     </head>
-    <body class="night">
+    <body >
             <!-- class="night" -->
     <!-- class="cyborg" -->
         <nav class="app-nav" id="primary-nav">
             <li class="active"><a title="Dashboard" href="{% url 'dashboard' %}"><i class="	fa fa-credit-card"></i> Dashboard</a></li>
-            <li><a href="#" title="Recent"><i class="fa fa-align-justify"></i> Recent</a></li>
+            <li><a href="{% url 'homepage'%}" title="Homepage"><i class="fa fa-align-justify"></i> Homepage</a></li>
             <li><a href="#" title="Pending"><i class="fa fa-dot-circle-o"></i> Pending</a></li>
             <li><a href="#" title="Search"><i class="fa fa-search"></i> Search</a></li>
            

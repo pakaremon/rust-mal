@@ -47,6 +47,9 @@ def dashboard(request):
     form = PackageSubmitForm()
     return render(request, 'package_analysis/dashboard.html', {'form': form})
 
+def homepage(request):
+    return render(request, 'package_analysis/homepage.html')
+
 def submit_sample(request):
     ''' Enter package name, version and ecosystem to analyze the package.
       The package are already in the Wolfi registry'''
@@ -161,6 +164,33 @@ def get_npm_packages(request):
 @staticmethod
 def get_packagist_packages(request):
     return JsonResponse(Helper.get_packagist_packages())
+
+@staticmethod
+def get_rubygems_packages(request):
+    return JsonResponse(Helper.get_rubygems_packages())
+
+@staticmethod
+def get_rubygems_versions(request):
+    import requests
+    def get_package_versions(package_name):
+        url = f"https://rubygems.org/api/v1/versions/{package_name}.json"
+
+        response = requests.get(url)
+        if response.status_code == 200:
+            data = response.json()
+            results = []
+            for version in data:
+                results.append(version['number'])
+            return results
+        else:
+            return []
+        
+    package_name = request.GET.get('package_name', None)
+    if not package_name:
+        return JsonResponse({'error': 'Package name is required'}, status=400)
+    
+    get_package_versions = get_package_versions(package_name)
+    return JsonResponse({"versions": get_package_versions})
 
 @staticmethod
 def get_packagist_versions(request):

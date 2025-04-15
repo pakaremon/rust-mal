@@ -154,6 +154,35 @@ class Helper:
                 writer.writerow([package])
         
         return {"packages": package_names}
+    
+    @staticmethod
+    def get_rubygems_packages():
+        import csv
+        current_path = os.path.dirname(os.path.abspath(__file__))
+        rubygems_packages_path = os.path.join(current_path, 'resources', 'rubygems_package_names.csv')
+        if os.path.exists(rubygems_packages_path):
+            with open(rubygems_packages_path, 'r') as file:
+                packages = csv.reader(file)
+                # skip the header
+                next(packages)
+                packages = [row[0] for row in packages]
+            return {"packages": packages}
+
+        url = 'https://rubygems.org/names'
+
+        response = requests.get(url)
+        response.raise_for_status()  # Ensure request was successful
+
+        gem_names = response.text.splitlines()
+
+        with open(rubygems_packages_path, 'w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(["Package Name"])
+            for gem in gem_names:
+                writer.writerow([gem])
+        
+        return {"packages": gem_names}
+        
 
     @staticmethod
     def get_packagist_packages():

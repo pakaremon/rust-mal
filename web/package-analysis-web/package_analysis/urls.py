@@ -4,8 +4,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
-
-    path("", views.dashboard, name="dashboard"),
+    path("", views.homepage, name="homepage"),
+    path("dashboard/", views.dashboard, name="dashboard"),
     path("get_rust_packages/", views.get_rust_packages, name="get_rust_packages"),
     path("get_pypi_packages/", views.get_pypi_packages, name="get_pypi_packages"),
     # get_pypi_versions is used to get the available versions of the package in pypi.
@@ -16,6 +16,9 @@ urlpatterns = [
     # get packagist
     path("get_packagist_packages/", views.get_packagist_packages, name="get_packagist_packages"),
     path("get_packagist_versions/", views.get_packagist_versions, name="get_packagist_versions"),
+    # get rubygems
+    path("get_rubygems_packages/", views.get_rubygems_packages, name="get_rubygems_packages"),
+    path("get_rubygems_versions/", views.get_rubygems_versions, name="get_rubygems_versions"),
      
     path("configure/", views.configure, name="configure"),
     path("analyze/", views.analyze, name="analyze"),

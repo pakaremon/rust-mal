@@ -244,7 +244,7 @@
                                  Time: <b>${(report_data.time || 0).toFixed(2)}</b> (seconds)`;
 
             reports.innerHTML += `<span id="report-id" style="display: none;">${report_data.id}</span>`;
-            document.getElementById('report-id-detail').href = `/package-analysis/report/${report_data.id}/`;
+            document.getElementById('report-id-detail').href = `/report/${report_data.id}/`;
             document.getElementById('report-id-detail').style.display = 'inline';
 
         
@@ -453,60 +453,11 @@
 {% block body %}
         <div id="cuckoo-dashboard" class="hidden"> </div>
         <div class="flex-grid__horizontal--grow dashboard">
-            <div class="flex-grid__column dashboard__left">
-                <h2 class="dashboard__col-title">Malcontent</h2>
-                <div class="dashboard-module" data-dashboard-module="installation"> 
-                    <header class="dashboard-module__header">
-                        <h4>package-analysis-apk Installation</h4>
-                    </header>
-                    <section class="dashboard-module__body">
-                        <table class="simple">
-                            <tbody>
-                                <tr>
-                                    <td>Version</td>
-                                    <td>1.0.0</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </section>
-                </div>
-                <div class="dashboard-module">
-                    <header class="dashboard-module__header">
-                        <h4>Usage statistics</h4>
-                    </header>
-                    <section class="dashboard-module__body">
-                        <table class="simple">
-                            <tbody data-populate="statistics">
-                                <tr>
-                                    <td>Reported</td>
-                                    <td>5868258</td>
-                                </tr>
-                                <tr>
-                                    <td>Completed</td>
-                                    <td>0</td>
-                                </tr>
-                                <tr>
-                                    <td>Total</td>
-                                    <td>5909340</td>
-                                </tr>
-                                <tr>
-                                    <td>Running</td>
-                                    <td>0</td>
-                                </tr>
-                                <tr>
-                                    <td>Pending</td>
-                                    <td>0</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </section>
-                </div>
 
-
-            </div>
+        </div>
 
             <div class="flex-grid__column dashboard__right">
-                <h2 class="dashboard__col-title">package-analysis-apk</h2>
+                <h2 class="dashboard__col-title">packguard.dev</h2>
                 <div class="loader" id="loader"></div>
                 <div class="dashboard-module__lg" data-dashboard-module="upload">
                     <div class="dashboard-module__body omni-uploader">
