@@ -34,6 +34,8 @@ python manage.py runserver
 Access the web interface at [127.0.0.1:8000/package-analysis](http://127.0.0.1:8000/package-analysis)
 
 ## Demo
+![home page](images/homepage.png)
+The homepage shows featutes of projects and contact informations.
 
 ![Dashboard Screenshot](images/dashboard.png)
 
@@ -45,4 +47,51 @@ On the right side of the dashboard, the user can enter the package name and pack
 
 ![Report Detail](images/report.png)
 The report includes detailed information such as files, commands executed, domains accessed, and IP addresses involved. This data helps users understand the behavior and potential risks associated with the analyzed package.
+
+# Run on azure
+```bash
+ cd rust-mal/web/package-analysis-web
+#  Create virtual environment
+python -m venv .env
+# Active virtual environment
+source .env/bin/activate
+# Install libraries
+pip install -r requirements.txt
+```
+Create database
+
+```bash
+python manage.py makemigrations
+python manage.py migrates
+```
+
+Run on web server on port 80
+
+```bash
+sudo env "PATH=$PATH" python manage.py runserver 0.0.0.0:80
+```
+OR
+```bash
+sudo $(which python) manage.py runserver 0.0.0.0:80
+``
+
+# Install tools
+Install ['Docker in Ubuntu'](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-20-04)
+
+### Install OSS-Find-Squat
+
+1. Install [`Oss-gadget v0.1.422`](https://github.com/microsoft/OSSGadget/releases/download/v0.1.422/OSSGadget_linux_0.1.422.tar.gz).
+2. Install [`dotnet 8`](https://dotnet.microsoft.com/en-us/download/dotnet/8.0).
+3. Build a Docker image for microservice usage.
+
+
+### Static analysis
+- Bandit4mal
+- VirusTotal
+- OSS-detect-backdoor
+
+# TODO: Automation
+https://www.geeksforgeeks.org/how-to-setup-cron-jobs-in-ubuntu/
+
+https://appliku.com/post/setting-nginx-django-project/
 
