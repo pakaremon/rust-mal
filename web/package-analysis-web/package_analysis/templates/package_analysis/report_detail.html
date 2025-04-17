@@ -104,6 +104,10 @@
             </ul>
             </li>
         {% endif %}
+        <!-- else print source not found -->
+        {% if not report.source_url %}
+            <li><strong>Source code:</strong> Not found</li>
+        {% endif %}
         <li><strong>Analysis Completed Time:</strong> {{ report.time|floatformat:2 }} seconds</li>
         
     </ul>

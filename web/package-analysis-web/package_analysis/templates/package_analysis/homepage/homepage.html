@@ -1,0 +1,52 @@
+{% extends "package_analysis/homepage/homepage_layout.html" %}
+{% block body%}
+
+    <section id="features" class="container my-5">
+        <h2 class="text-center">Key Features</h2>
+        <div class="row">
+            <div class="col-md-6">
+                <h4>Dynamic Analysis</h4> 
+                <a href="{%url 'dynamic_analysis'%}">   
+                    <ul>
+                        <li>Runtime behavior analysis</li>
+                        <li>Syscall tracing</li>
+                        <li>Malware detection</li>
+                    </ul>
+                </a>
+            </div>
+            <div class="col-md-6">
+                <h4>Static Analysis</h4>
+                <ul>
+                   <a href="{% url 'find_typosquatting' %}"><li>Typosquatting candidate detection</li> </a>
+                    <a href="{% url 'find_source_code' %}"> <li>Find Source Code Repository</li> </a>
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <h4>Ecosystem Support</h4>
+                <ul>
+                    <li>PyPI, Crates.io, npm</li>
+                    <li>Packagist, Rubygems, Wolfi-APK</li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h4>Reporting</h4>
+                <ul>
+                    <li>Malware detection </li>
+                    <li>Export reports (PDF, JSON, HTML)</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+
+    <section id="demo" class="container my-5">
+        <h2 class="text-center">Demo/Live Scan</h2>
+        <!-- <p class="text-center"></p> -->
+        <div class="text-center">
+            <a href="{% url 'dashboard' %}" class="btn btn-primary btn-lg">Try Demo</a>
+        </div>
+    </section>
+
+{% endblock %}

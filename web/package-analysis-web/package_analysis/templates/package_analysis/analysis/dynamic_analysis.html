@@ -1,0 +1,38 @@
+{% extends "package_analysis/analysis/analysis_layout.html" %}   
+{% block body%}
+        <!-- Submission Form -->
+        <section class="bg-white shadow rounded-lg p-6 max-w-lg mx-auto">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Submit a package for dynamic-analysis packages</h2>
+                <form id="submitForm" onsubmit="event.preventDefault(); submitDynamicAnalysisForm();" method="post" action="{% url 'dynamic_analysis' %}">
+                {% csrf_token %}
+                <br>
+                {{ form.ecosystem.label_tag }}
+                {{ form.ecosystem }}
+                <br>
+                    {{ form.package_name.label_tag }}
+                    {{ form.package_name }}     
+                    <br>                  
+                <div class="suggestions" id="suggestions"></div>
+                {{ form.package_version.label_tag }}
+                {{ form.package_version }}
+
+                <br>
+                <!-- Submit Button -->
+                <button type="submit"
+                    class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 focus:ring focus:ring-blue-300">
+                    Analyze Package
+                </button>
+            </form>
+                            
+        </section>
+        
+        <!-- Loader -->
+        <div id="loader" class="hidden fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50">
+            <div class="loader"></div>
+        </div>
+
+        <!-- Analysis Feedback Panel -->
+        <section id="feedback-panel" class="mt-8 hidden">
+        </section>
+
+{% endblock %}

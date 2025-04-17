@@ -10,6 +10,13 @@ from collections import defaultdict
 from functools import lru_cache
 
 from bs4 import BeautifulSoup
+from datetime import datetime
+import logging
+from .src.utils import log_function_output
+
+current_path = os.path.dirname(os.path.abspath(__file__))   
+logger = log_function_output(file_level=logging.DEBUG, console_level=logging.CRITICAL,
+                              log_filepath=os.path.join(current_path, 'logs', 'helper.log'))
 
 
 
@@ -110,6 +117,57 @@ class Helper:
             print(f"Failed to write APK to file: {e}")
             raise
 
+    @staticmethod
+    def get_latest_package_version(package_name, ecosystem):
+
+        url = f"https://api.deps.dev/v3/systems/{ecosystem}/packages/{package_name}"
+        print(f"Fetching latest version for package: {url}")
+        response = requests.get(url)
+        if response.status_code == 200:
+            data = response.json()
+
+
+            versions = data.get('versions', [])
+            latest_version = None
+            for version in versions:
+                ts = version.get("publishedAt")
+                if ts != None:
+                    ts = ts.replace("Z", "+00:00")
+                    curent_date = datetime.fromisoformat(ts)
+                    if latest_version == None:
+                        latest_version = version
+                    elif curent_date > datetime.fromisoformat(latest_version.get("publishedAt").replace("Z", "+00:00")):
+                        latest_version = version
+            return latest_version['versionKey']['version']
+        else:
+            print(f"Failed to fetch data for package: {package_name}")
+            return None
+        
+    @staticmethod
+    def get_source_url(package_name, ecosystem):
+
+        '''get source url of the package from deps.dev'''
+
+        latest_version = Helper.get_latest_package_version(package_name, ecosystem)
+        print(f"Latest version for package {package_name}: {latest_version}")
+        if latest_version == None:
+            print(f"Failed to get latest version for package: {package_name}")
+            return None
+        
+        url = f"https://api.deps.dev/v3alpha/systems/{ecosystem}/packages/{package_name}/versions/{latest_version}"
+        print(f"Fetching source url for package: {url}")
+        response = requests.get(url)
+        if response.status_code == 200:
+            data = response.json()
+            for link in data['links']:
+                if link['label'] == 'SOURCE_REPO':
+                    return link['url']
+        else:
+            print(f"Failed to fetch data for package: {package_name}")
+            return None
+        
+
+        
     @staticmethod       
     def get_rust_packages():
         current_path = os.path.dirname(os.path.abspath(__file__))
@@ -251,7 +309,6 @@ class Helper:
         command = f'{executable} -o "{dst}" --format sarifv2 pkg:{ecosystem}/{package_name}'
 
         print(f"find source for package: {package_name}, version: {package_version}, ecosystem: {ecosystem}")
-        print(f"Command: {command}")
         print(f"Output saved to {dst}")
 
         def parse_sarif(sarif_file):
@@ -262,7 +319,11 @@ class Helper:
                     for candidate in data['runs'][0]['results']:
                         if candidate:
                             url_sources.append(candidate['locations'][0]['physicalLocation']['address']['fullyQualifiedName'])
-                        
+                    
+                    additional_urls = Helper.get_source_url(package_name, ecosystem)
+                    if additional_urls:
+                        url_sources.append(additional_urls)
+
                     return url_sources
             except json.JSONDecodeError as e:
                 print(f"Error decoding JSON: {e}")
@@ -281,7 +342,13 @@ class Helper:
 
             url_sources = parse_sarif(dst)
             print(f"URL sources found: {url_sources}")
-            
+
+            additional_urls = Helper.get_source_url(package_name, ecosystem)
+            url_sources.append(additional_urls)
+            print(f"Additional URL sources found: {additional_urls}")
+            url_sources = list(set(url_sources))  # Remove duplicates
+            # remove None values
+            url_sources = [url for url in url_sources if url is not None]
             return url_sources
         except subprocess.CalledProcessError as e:
             print(f"Command failed with error: {e.stderr}")
@@ -304,6 +371,8 @@ class Helper:
             return "npm"
         elif ecosystem == "rubygems":
             return "gem"
+        elif ecosystem == "packagist":
+            return "composer"
         else:
             raise ValueError(f"Unknown ecosystem: {ecosystem}")
 
@@ -313,7 +382,7 @@ class Helper:
         print(f"find typosquats for package: {package_name}, version: {package_version}, ecosystem: {ecosystem}")
         ecosystem = Helper.transfer_ecosystem(ecosystem)
         folder_path = os.path.join(tempfile.gettempdir(), "oss-find-squats")
-        dst = os.path.join(folder_path, f"{package_name}.sarif")
+        dst = os.path.join(folder_path, f"{package_name}_{ecosystem}.sarif")
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
 
@@ -359,8 +428,7 @@ class Helper:
         except subprocess.CalledProcessError as e:
             print(f"Command failed with error: {e.stderr}")
             raise #always raise the error to the caller
-        
-        
+
 
  
     @staticmethod
@@ -383,10 +451,11 @@ class Helper:
 
         try:
             start_time = time.time()
-            result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
+            result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True, encoding='utf-8')
             end_time = time.time()
             elapsed_time = (end_time - start_time) 
-            print(result.stdout)
+            
+            logger.info(result.stdout)
 
             json_file_path = os.path.join("/tmp/results/", package_name + ".json")
             
@@ -477,7 +546,7 @@ class Report:
                 'commands': [],
                 'syscalls': []
             },
-            'import': {
+            'execute': {
                 'num_files': 0,
                 'num_commands': 0,
                 'num_network_connections': 0,
@@ -538,26 +607,28 @@ class Report:
                     results['install']['syscalls'].append(match.group(1))
 
         execution_phase = json_data.get('Analysis', {}).get('execute', {})
+        if not execution_phase:
+            execution_phase = json_data.get('Analysis', {}).get('import', {})
 
-        results['import']['num_files'] = len(execution_phase.get('Files', []))
-        results['import']['num_commands'] = len(execution_phase.get('Commands', []))
-        results['import']['num_network_connections'] = len(execution_phase.get('Sockets', []))
-        results['import']['num_system_calls'] = len(execution_phase.get('Syscalls', [])) // 2
+        results['execute']['num_files'] = len(execution_phase.get('Files') or [])
+        results['execute']['num_commands'] = len(execution_phase.get('Commands') or [])
+        results['execute']['num_network_connections'] = len(execution_phase.get('Sockets') or [])
+        results['execute']['num_system_calls'] = len(execution_phase.get('Syscalls') or []) // 2
 
         for file in execution_phase.get('Files', []):
             if file.get('Read'):
-                results['import']['files']['read'].append(file.get('Path'))
+                results['execute']['files']['read'].append(file.get('Path'))
             if file.get('Write'):
-                results['import']['files']['write'].append(file.get('Path'))
+                results['execute']['files']['write'].append(file.get('Path'))
 
         for dns in execution_phase.get('DNS') or []:
             if dns is not None:
                 for query in dns.get('Queries', []):
-                    results['import']['dns'].append(query.get('Hostname'))
+                    results['execute']['dns'].append(query.get('Hostname'))
 
         for socket in execution_phase.get('Sockets', []) or []:
             if socket is not None:
-                results['import']['ips'].append({
+                results['execute']['ips'].append({
                     'Address': socket.get('Address'), 
                     'Port': socket.get('Port'),
                     'Hostnames': ' '.join(socket.get('Hostnames') or [])
@@ -565,7 +636,7 @@ class Report:
         
         for command in execution_phase.get('Commands', []) or []:
             if command is not None:
-                results['import']['commands'].append(command.get('Command'))
+                results['execute']['commands'].append(command.get('Command'))
         
 
 
@@ -575,6 +646,6 @@ class Report:
             if syscall is not None:
                 match = pattern.match(syscall)
                 if match:
-                    results['import']['syscalls'].append(match.group(1))
+                    results['execute']['syscalls'].append(match.group(1))
         
         return results

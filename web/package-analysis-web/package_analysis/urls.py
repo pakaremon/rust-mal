@@ -5,6 +5,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path("", views.homepage, name="homepage"),
+    path("contact/", views.contact, name="contact"),
     path("dashboard/", views.dashboard, name="dashboard"),
     path("get_rust_packages/", views.get_rust_packages, name="get_rust_packages"),
     path("get_pypi_packages/", views.get_pypi_packages, name="get_pypi_packages"),
@@ -23,10 +24,16 @@ urlpatterns = [
     path("configure/", views.configure, name="configure"),
     path("analyze/", views.analyze, name="analyze"),
     path("results/", views.results, name="results"),
-# upload_sample is submit local sample package. 
+    # upload_sample is submit local sample package. 
     path("upload_sample/", views.upload_sample, name="upload_sample"),
-# submit_sample is submit available existing package in crates.io
+    # submit_sample is submit available existing package. run mutiple tools: typosquatting, and source code finder.
     path("submit_sample/", views.submit_sample, name="submit_sample"),
+    # find source code repository of the package.
+    path("find_source_code/", views.find_source_code, name="find_source_code"),
+    # find typosquatting of the package.
+    path("find_typosquatting/", views.find_typosquatting, name="find_typosquatting"),
+    # dynamic analysis of the package.
+    path("dynamic_analysis/", views.dynamic_analysis, name="dynamic_analysis"),
     path("report/<int:report_id>/", views.report_detail, name="report"),
     path("get_all_report/", views.get_all_report, name="get_report"),
     path("get_report/<int:report_id>/", views.get_report, name="get_report"),

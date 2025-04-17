@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
 
-from .forms import PackageSubmitForm
+from .forms import PackageSubmitForm, PackageForm
 
 from .helper import Helper
 import json
@@ -17,10 +17,12 @@ from concurrent.futures import ThreadPoolExecutor
 
 def save_report(reports):
     ''' Save the report to the database '''
-    package = Package(package_name=reports['packages']['package_name'], package_version=reports['packages']['package_version'],
-                        ecosystem=reports['packages']['ecosystem'])
-    package.save()
-
+    package, created = Package.objects.get_or_create(
+        package_name=reports['packages']['package_name'],
+        package_version=reports['packages']['package_version'],
+        ecosystem=reports['packages']['ecosystem']
+    )
+ 
     syscalls_counter = Counter(reports['install']['syscalls'] + reports['import']['syscalls'])
     the_report = Report(
         package=package,
@@ -47,10 +49,68 @@ def dashboard(request):
     form = PackageSubmitForm()
     return render(request, 'package_analysis/dashboard.html', {'form': form})
 
+def contact(request):
+    return render(request, 'package_analysis/homepage/contact.html')
+ 
 def homepage(request):
-    return render(request, 'package_analysis/homepage.html')
+    return render(request, 'package_analysis/homepage/homepage.html')
+
+def dynamic_analysis(request):
+    # this tool using package-analysis tools to analyze the package.
+    if request.method == 'POST':
+        form = PackageForm(request.POST)
+        if form.is_valid():
+            package_name = form.cleaned_data['package_name']
+            package_version = form.cleaned_data['package_version']
+            ecosystem = form.cleaned_data['ecosystem']
+
+            # Process the form data (e.g., save to database, call an API, etc.)
+            print(f"Package Name: {package_name}, Package Version: {package_version}, Ecosystem: {ecosystem}")
+            reports = Helper.run_package_analysis(package_name, package_version, ecosystem)
+            return JsonResponse({"dynamic_analysis_report": reports})
+
+    form = PackageForm()
+    return render(request, 'package_analysis/analysis/dynamic_analysis.html', {'form': form}) 
+
+
+
+def find_typosquatting(request):
+    if request.method == 'POST':
+        print("find typosquatting")
+        form = PackageForm(request.POST)
+        if form.is_valid():
+            package_name = form.cleaned_data['package_name']
+            package_version = form.cleaned_data['package_version']
+            ecosystem = form.cleaned_data['ecosystem']
+
+            # Process the form data (e.g., save to database, call an API, etc.)
+            print(f"Package Name: {package_name}, Package Version: {package_version}, Ecosystem: {ecosystem}")
+            typo_candidates = Helper.run_oss_squats(package_name, package_version, ecosystem)
+            return JsonResponse({'sources': typo_candidates})
+        
+    form = PackageForm()
+    return render(request, 'package_analysis/analysis/typosquatting.html', {'form': form})
+
+def find_source_code(request):
+    if request.method == 'POST':
+        print("find source code")
+        form = PackageForm(request.POST)
+        if form.is_valid():
+            package_name = form.cleaned_data['package_name']
+            package_version = form.cleaned_data['package_version']
+            ecosystem = form.cleaned_data['ecosystem']
+
+            # Process the form data (e.g., save to database, call an API, etc.)
+            print(f"Package Name: {package_name}, Package Version: {package_version}, Ecosystem: {ecosystem}")
+            sources = Helper.run_oss_find_source(package_name, package_version, ecosystem)
+            return JsonResponse({'sources': sources})
+        
+    form = PackageForm()
+    return render(request, 'package_analysis/analysis/findsource.html', {'form': form})
 
 def submit_sample(request):
+    # TODO: if package has already been analyzed, return the report instead of re-analyzing it.
+
     ''' Enter package name, version and ecosystem to analyze the package.
       The package are already in the Wolfi registry'''
     if request.method == 'POST':
