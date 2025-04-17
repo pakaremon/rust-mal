@@ -14,9 +14,15 @@ from datetime import datetime
 import logging
 from .src.utils import log_function_output
 
-# current_path = os.path.dirname(os.path.abspath(__file__))   
-# logger = log_function_output(file_level=logging.DEBUG, console_level=logging.CRITICAL,
-#                               log_filepath=os.path.join(current_path, 'logs', 'helper.log'))
+current_path = os.path.dirname(os.path.abspath(__file__))
+log_file = os.path.join(current_path, 'logs', 'helper.log')
+# crate an empty logfile and overwrite the old one
+if os.path.exists(log_file):
+    os.remove(log_file)
+os.makedirs(os.path.dirname(log_file), exist_ok=True)
+
+logger = log_function_output(file_level=logging.DEBUG, console_level=logging.CRITICAL,
+                              log_filepath=log_file)
 
 
 
@@ -304,7 +310,7 @@ class Helper:
         if Helper.is_windows_environment():
             executable = r"D:\HocTap\projectDrVuDucLy\tools\OSSGadget-0.1.422\src\oss-find-source\bin\Debug\net8.0\oss-find-source.exe"
         else:
-            executable = r"/home/azure_cong/tools/OSSGadget_linux_0.1.422/oss-find-source"
+            executable = r"oss-find-source"
 
         command = f'{executable} -o "{dst}" --format sarifv2 pkg:{ecosystem}/{package_name}'
 
@@ -389,7 +395,7 @@ class Helper:
         if Helper.is_windows_environment():
             executable = r"D:\HocTap\projectDrVuDucLy\tools\OSSGadget-0.1.422\src\oss-find-squats\bin\Debug\net8.0\oss-find-squats.exe" 
         else:
-            executable = r"/home/azure_cong/tools/OSSGadget_linux_0.1.422/oss-find-squats"
+            executable = r"oss-find-squats"
         command = f'{executable} -o "{dst}" --format sarifv2 pkg:{ecosystem}/{package_name}'
 
 
@@ -455,7 +461,7 @@ class Helper:
             end_time = time.time()
             elapsed_time = (end_time - start_time) 
             
-            # logger.info(result.stdout)
+            logger.info(result.stdout)
 
             json_file_path = os.path.join("/tmp/results/", package_name + ".json")
             
