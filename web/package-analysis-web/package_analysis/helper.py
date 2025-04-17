@@ -14,9 +14,9 @@ from datetime import datetime
 import logging
 from .src.utils import log_function_output
 
-current_path = os.path.dirname(os.path.abspath(__file__))   
-logger = log_function_output(file_level=logging.DEBUG, console_level=logging.CRITICAL,
-                              log_filepath=os.path.join(current_path, 'logs', 'helper.log'))
+# current_path = os.path.dirname(os.path.abspath(__file__))   
+# logger = log_function_output(file_level=logging.DEBUG, console_level=logging.CRITICAL,
+#                               log_filepath=os.path.join(current_path, 'logs', 'helper.log'))
 
 
 
@@ -455,7 +455,7 @@ class Helper:
             end_time = time.time()
             elapsed_time = (end_time - start_time) 
             
-            logger.info(result.stdout)
+            # logger.info(result.stdout)
 
             json_file_path = os.path.join("/tmp/results/", package_name + ".json")
             
