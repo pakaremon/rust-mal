@@ -76,3 +76,8 @@ To convert a file, use the following command:
 ```bash
 dos2unix /path/to/your/file
 ```
+
+To convert all files in a specific folder
+```bash
+find path/sample_folder -type f -exec dos2unix {} \;
+```
