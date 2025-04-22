@@ -245,7 +245,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     package_names = Object.keys(packages);
                 } else if (["pypi", "npm", "packagist", "rubygems"].includes(ecosystem.value)) {
                     package_names = packages.packages;
-                }  
+            }  
 
                 if (value) {
                     const filteredPackages = package_names

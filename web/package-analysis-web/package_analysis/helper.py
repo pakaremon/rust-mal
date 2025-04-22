@@ -320,7 +320,7 @@ class Helper:
         # command = f'{executable} -o "{dst}" --format sarifv2 pkg:{ecosystem}/{package_name}@{package_version}'
 
         command = [
-            "docker", "run", 
+            "docker", "run", "--rm",
             "-v", f"/tmp/oss-find-source:{folder_path}",  # Mount the folder path to the same path inside the container
             "pakaremon/ossgadget:latest", 
             "/bin/bash", "-c", 
@@ -432,7 +432,7 @@ class Helper:
         # command = f'{executable} -o "{dst}" --format sarifv2 pkg:{ecosystem}/{package_name}@{package_version}'
 
         command = [
-            "docker", "run", 
+            "docker", "run", "--rm", 
             "-v", f"/tmp/oss-find-squats:{folder_path}",  # Mount the folder path to the same path inside the container
             "pakaremon/ossgadget:latest", 
             "/bin/bash", "-c", 
