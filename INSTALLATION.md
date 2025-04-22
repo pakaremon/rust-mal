@@ -84,3 +84,14 @@ dos2unix /path/to/your/file
 
 
 
+<<<<<<< HEAD
+=======
+```bash
+dos2unix /path/to/your/file
+```
+
+To convert all files in a specific folder
+```bash
+find path/sample_folder -type f -exec dos2unix {} \;
+```
+>>>>>>> 4f65f7d23b0ff93293539044235eb96e964cd9eb
