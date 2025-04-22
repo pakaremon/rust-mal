@@ -65,6 +65,11 @@ python manage.py makemigrations
 python manage.py migrates
 ```
 
+Using unicorn to run
+```bash
+gunicorn --bind 0.0.0.0:8000 package_analysis_apk_web.wsgi:application
+```
+
 Run on web server on port 80
 
 ```bash
@@ -78,17 +83,12 @@ sudo $(which python) manage.py runserver 0.0.0.0:80
 # Install tools
 Install ['Docker in Ubuntu'](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-20-04)
 
-### Install OSS-Find-Squat
+### Install OSS-Find-Squat & OSS-detect-backdoor
 
 1. Install [`Oss-gadget v0.1.422`](https://github.com/microsoft/OSSGadget/releases/download/v0.1.422/OSSGadget_linux_0.1.422.tar.gz).
-2. Install [`dotnet 8`](https://dotnet.microsoft.com/en-us/download/dotnet/8.0).
-3. Build a Docker image for microservice usage.
+2. [`Extract and build docker`](https://github.com/microsoft/OSSGadget/wiki/Docker-Image)
 
 
-### Static analysis
-- Bandit4mal
-- VirusTotal
-- OSS-detect-backdoor
 
 # TODO: Automation
 https://www.geeksforgeeks.org/how-to-setup-cron-jobs-in-ubuntu/

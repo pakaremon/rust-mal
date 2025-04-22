@@ -1,38 +1,99 @@
-{% extends "package_analysis/analysis/analysis_layout.html" %}   
+{% extends "package_analysis/homepage/homepage_layout.html" %}   
 {% block body%}
-        <!-- Submission Form -->
-        <section class="bg-white shadow rounded-lg p-6 max-w-lg mx-auto">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4">Submit a package for dynamic-analysis packages</h2>
-                <form id="submitForm" onsubmit="event.preventDefault(); submitDynamicAnalysisForm();" method="post" action="{% url 'dynamic_analysis' %}">
-                {% csrf_token %}
-                <br>
-                {{ form.ecosystem.label_tag }}
-                {{ form.ecosystem }}
-                <br>
-                    {{ form.package_name.label_tag }}
-                    {{ form.package_name }}     
-                    <br>                  
-                <div class="suggestions" id="suggestions"></div>
-                {{ form.package_version.label_tag }}
-                {{ form.package_version }}
+        <header class="bg-dark text-white text-center py-1">
+            <div class="container">
+                <!-- color white -->
+                <h1 style="color: white;">Dynamic Analysis</h1>
+            </div>
+        </header>
 
-                <br>
-                <!-- Submit Button -->
-                <button type="submit"
-                    class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 focus:ring focus:ring-blue-300">
-                    Analyze Package
-                </button>
+    <style>
+        .btn.active {
+            background-color: #007bff; /* Primary color */
+            color: white;
+            border: 2px solid #0056b3; /* Darker border for emphasis */
+        }
+        .btn:not(.active) {
+            background-color: #f8f9fa; /* Light gray for inactive */
+            color: #6c757d; /* Muted text color */
+        }
+    </style>
+
+    <script>
+
+    function showUploadForm() {
+        const form = document.getElementById('dynamicForm');
+        form.setAttribute('action', "{% url 'upload_sample' %}");
+        document.getElementById('fileInputContainer').classList.remove('d-none');
+        document.getElementById('fileInput').setAttribute('required', 'required'); // Add required
+
+        document.getElementById('uploadTab').classList.add('active');
+        document.getElementById('submitTab').classList.remove('active');
+    }
+
+    function showSubmitForm() {
+        const form = document.getElementById('dynamicForm');
+        form.setAttribute('action', "{% url 'dynamic_analysis' %}");
+        document.getElementById('fileInputContainer').classList.add('d-none');
+        document.getElementById('fileInput').removeAttribute('required'); // Remove required
+
+        document.getElementById('uploadTab').classList.remove('active');
+        document.getElementById('submitTab').classList.add('active');
+    }
+
+
+        </script>
+
+        <!-- Upload and submit tab, click one  -->
+
+        <div class="container my-5">
+
+            <div class="text-center mb-4">
+                <button id="submitTab" class="btn btn-secondary mx-2" onclick="showSubmitForm()" title="Submit a package for analysis">Submit package</button>
+                <button id="uploadTab" class="btn btn-secondary mx-2 active" onclick="showUploadForm()" title="Upload a package for analysis">Upload package</button>
+            </div>
+  
+        </div>
+            
+        <!-- Upload Form -->
+
+       
+        <section class="bg-white shadow rounded-lg p-4 mx-auto" style="max-width: 600px;">
+            <form id="dynamicForm" method="post" enctype="multipart/form-data" onsubmit="event.preventDefault(); submitDynamicAnalysisForm();" action="{% url 'upload_sample' %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    {{ form.ecosystem.label_tag }}
+                    {{ form.ecosystem }}
+                </div>
+                <div class="form-group">
+                    {{ form.package_name.label_tag }}
+                    {{ form.package_name }}
+                </div>
+                <div class="form-group">
+                    <div class="suggestions" id="suggestions"></div>
+                    {{ form.package_version.label_tag }}
+                    {{ form.package_version }}
+                </div>
+                <div id="fileInputContainer">
+                    <label for="file">Choose file to upload:</label>
+                    <input type="file" id="fileInput" name="file" required>
+                </div>
+                <br><br>
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary active">
+                        Submit
+                    </button>
+                </div>
             </form>
-                            
         </section>
-        
         <!-- Loader -->
-        <div id="loader" class="hidden fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50">
-            <div class="loader"></div>
+        <div id="loader" class="position-fixed w-100 h-100 top-0 start-0 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center z-50 d-none" >
+            <div class="spinner"></div>
         </div>
 
+
         <!-- Analysis Feedback Panel -->
-        <section id="feedback-panel" class="mt-8 hidden">
+        <section id="feedback-panel" class="mt-4 d-none">
         </section>
 
 {% endblock %}

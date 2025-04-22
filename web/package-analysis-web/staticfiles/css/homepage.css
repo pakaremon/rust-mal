@@ -1,0 +1,154 @@
+body {
+    font-family: 'Arial', sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f8f9fa;
+    margin: 0;
+    padding: 0;
+}
+
+h1, h2, h4 {
+    font-family: 'Roboto', sans-serif;
+    font-weight: bold;
+    color: #343a40;
+}
+
+a {
+    text-decoration: none;
+    color: #007bff;
+}
+
+a:hover {
+    color: #0056b3;
+    text-decoration: underline;
+}
+
+/* Navbar */
+.navbar {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #007bff;
+}
+
+.navbar-brand:hover {
+    color: #0056b3;
+}
+
+.nav-link {
+    font-size: 1rem;
+    color: #343a40;
+}
+
+.nav-link.active {
+    font-weight: bold;
+    color: #007bff;
+}
+
+.nav-link:hover {
+    color: #0056b3;
+}
+
+/* Header */
+header {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: white;
+    padding: 4rem 0;
+    text-align: center;
+}
+
+header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+header p {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+}
+
+header .btn {
+    font-size: 1.2rem;
+    padding: 0.8rem 2rem;
+}
+
+/* Section Styles */
+section {
+    padding: 3rem 0;
+}
+
+#features h2, #security h2, #demo h2 {
+    margin-bottom: 2rem;
+    font-size: 2rem;
+    color: #007bff;
+}
+
+#features ul, #security p {
+    font-size: 1rem;
+    color: #555;
+}
+
+#features ul li {
+    margin-bottom: 0.5rem;
+}
+
+#security {
+    background-color: #f8f9fa;
+    border-top: 2px solid #007bff;
+    border-bottom: 2px solid #007bff;
+}
+
+/* Demo Section */
+#demo p {
+    font-size: 1.1rem;
+    color: #555;
+}
+
+#demo .btn {
+    font-size: 1.2rem;
+    padding: 0.8rem 2rem;
+}
+
+/* Footer */
+footer {
+    background-color: #343a40;
+    color: white;
+    padding: 1.5rem 0;
+}
+
+footer a {
+    color: #007bff;
+}
+
+footer a:hover {
+    color: #0056b3;
+    text-decoration: underline;
+}
+
+/* Buttons */
+.btn-primary {
+    background-color: #007bff;
+    border: none;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    header h1 {
+        font-size: 2rem;
+    }
+
+    header p {
+        font-size: 1rem;
+    }
+
+    #features h2, #security h2, #demo h2 {
+        font-size: 1.5rem;
+    }
+}

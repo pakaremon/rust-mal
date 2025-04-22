@@ -9,9 +9,11 @@ import git
 from collections import defaultdict
 from functools import lru_cache
 
+
 from bs4 import BeautifulSoup
 from datetime import datetime
 import logging
+import shutil
 from .src.utils import log_function_output
 
 current_path = os.path.dirname(os.path.abspath(__file__))
@@ -203,7 +205,8 @@ class Helper:
                 # skip the header
                 next(reader)
                 packages = [row[0] for row in reader]
-            return {"packages": packages}
+
+            return {"packages": list(packages)}
         
         url = "https://pypi.org/simple/"
         response = requests.get(url)
@@ -226,11 +229,13 @@ class Helper:
         rubygems_packages_path = os.path.join(current_path, 'resources', 'rubygems_package_names.csv')
         if os.path.exists(rubygems_packages_path):
             with open(rubygems_packages_path, 'r') as file:
-                packages = csv.reader(file)
+                reader = csv.reader(file)
                 # skip the header
-                next(packages)
-                packages = [row[0] for row in packages]
-            return {"packages": packages}
+                next(reader)
+                packages = [row[0] for row in reader]
+
+
+            return {"packages": list(packages)}
 
         url = 'https://rubygems.org/names'
 
@@ -289,13 +294,15 @@ class Helper:
             raise ValueError(f"Failed to fetch npm package names: {response.status_code}")  
     
     @staticmethod
-    def handle_uploaded_file(file_path):
+    def handle_uploaded_file(file_path, package_name, package_version, ecosystem):
         # /media/listing-0_UwODAKy.1-r0.apk
 
         local_path = Helper.find_root_path() + '/web/package-analysis-web' + file_path
-        package_name = file_path.split("/")[-1].split("-")[0]
-        package_version = file_path.split("/")[-1].split("-")[1].split(".crate")[0]
-        return Helper.run_package_analysis(package_name, package_version, "crates.io", local_path=local_path)
+        report = Helper.run_package_analysis(package_name, package_version, ecosystem, local_path=local_path)
+        # delete local file after analysis
+        if os.path.exists(local_path):
+            os.remove(local_path)
+        return report
 
 
     @staticmethod
@@ -307,15 +314,19 @@ class Helper:
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
         
-        if Helper.is_windows_environment():
-            executable = r"D:\HocTap\projectDrVuDucLy\tools\OSSGadget-0.1.422\src\oss-find-source\bin\Debug\net8.0\oss-find-source.exe"
-        else:
-            executable = r"oss-find-source"
 
-        command = f'{executable} -o "{dst}" --format sarifv2 pkg:{ecosystem}/{package_name}'
+        # executable = r"oss-find-source"
+        # Helper.check_executable_in_path(executable)
+        # command = f'{executable} -o "{dst}" --format sarifv2 pkg:{ecosystem}/{package_name}@{package_version}'
 
-        print(f"find source for package: {package_name}, version: {package_version}, ecosystem: {ecosystem}")
-        print(f"Output saved to {dst}")
+        command = [
+            "docker", "run", 
+            "-v", f"/tmp/oss-find-source:{folder_path}",  # Mount the folder path to the same path inside the container
+            "pakaremon/ossgadget:latest", 
+            "/bin/bash", "-c", 
+            f"\"mkdir -p /tmp/oss-find-source && oss-find-source pkg:{ecosystem}/{package_name}@{package_version} --format sarifv2 -o {dst}\""
+        ]
+        print(f"Output saved to {dst} after running the command: {' '.join(command)}")
 
         def parse_sarif(sarif_file):
             try:
@@ -382,8 +393,32 @@ class Helper:
         else:
             raise ValueError(f"Unknown ecosystem: {ecosystem}")
 
+    def check_executable_in_path(executable_name: str) -> str:
+        """
+        Check if an executable exists in the system PATH using `which`.
+        Returns the full path to the executable if found.
+        Raises FileNotFoundError if not found.
+        """
+        try:
+            result = subprocess.run(
+                ["which", executable_name],
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
+            )
+            path = result.stdout.strip()
+            if path:
+                print(f"✅ '{executable_name}' found at: {path}")
+                return path
+        except subprocess.CalledProcessError:
+            pass
+
+        raise FileNotFoundError(f"❌ '{executable_name}' not found in PATH.")
+
     @staticmethod
     def run_oss_squats(package_name, package_version, ecosystem):
+
 
         print(f"find typosquats for package: {package_name}, version: {package_version}, ecosystem: {ecosystem}")
         ecosystem = Helper.transfer_ecosystem(ecosystem)
@@ -392,12 +427,18 @@ class Helper:
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
 
-        if Helper.is_windows_environment():
-            executable = r"D:\HocTap\projectDrVuDucLy\tools\OSSGadget-0.1.422\src\oss-find-squats\bin\Debug\net8.0\oss-find-squats.exe" 
-        else:
-            executable = r"oss-find-squats"
-        command = f'{executable} -o "{dst}" --format sarifv2 pkg:{ecosystem}/{package_name}'
+        # executable = r"oss-find-squats"
+        # Helper.check_executable_in_path(executable)
+        # command = f'{executable} -o "{dst}" --format sarifv2 pkg:{ecosystem}/{package_name}@{package_version}'
 
+        command = [
+            "docker", "run", 
+            "-v", f"/tmp/oss-find-squats:{folder_path}",  # Mount the folder path to the same path inside the container
+            "pakaremon/ossgadget:latest", 
+            "/bin/bash", "-c", 
+            f"\"mkdir -p /tmp/oss-find-squats && oss-find-squats pkg:{ecosystem}/{package_name}@{package_version} --format sarifv2 -o {dst}\""
+        ]
+        print(f"Output saved to {dst} after running the command: {' '.join(command)}")
 
         def parse_sarif(sarif_file):
             try:
@@ -417,18 +458,15 @@ class Helper:
                 return []
                 
         try:
-
             if os.path.exists(dst):
                 package_names = parse_sarif(dst)
                 return package_names
-            
-            subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
-            print(f"Command executed successfully: {command}")
 
-            print(f"Output saved to {dst}")
-            package_names = parse_sarif(dst)
-            print(f"Package names found: {package_names}")
-            
+            print("Command: ", command) 
+            result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True, timeout=600)
+            print(f"stdout: {result.stdout}")
+            print(f"stderr: {result.stderr}")
+            package_names = parse_sarif(dst)  
             return package_names
 
         except subprocess.CalledProcessError as e:
@@ -452,8 +490,6 @@ class Helper:
         else:
             command = f"{script_path} -ecosystem {ecosystem} -package {package_name} -version {package_version}  -mode dynamic" 
 
-        if Helper.is_windows_environment():
-            command = f"wsl {command}"
 
         try:
             start_time = time.time()
@@ -465,10 +501,8 @@ class Helper:
 
             json_file_path = os.path.join("/tmp/results/", package_name + ".json")
             
-            if Helper.is_windows_environment():
-                read_command = f"wsl cat {json_file_path}"
-            else:
-                read_command = f"cat {json_file_path}"
+
+            read_command = f"cat {json_file_path}"
 
             json_result = subprocess.run(read_command, shell=True,
                                          check=True, capture_output=True,

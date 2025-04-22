@@ -28,6 +28,7 @@ var (
 		rubygemsPkgManager.ecosystem:  &rubygemsPkgManager,
 		packagistPkgManager.ecosystem: &packagistPkgManager,
 		cratesPkgManager.ecosystem:    &cratesPkgManager,
+		mavenPkgManager.ecosystem:     &mavenPkgManager,
 	}
 )
 

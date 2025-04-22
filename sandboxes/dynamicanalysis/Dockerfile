@@ -12,13 +12,9 @@ FROM buildpack-deps@sha256:d76488a56e1e85930e053b794daa9f990636565bf0de54903d65d
 WORKDIR /setup
 
 # Suppress questions relating to package installs
-ENV DEBIAN_FRONTEND noninteractive
-# Silence 'debconf: delaying package configuation, since apt-utils is not installed' warning
-# as it related to interactive configuration anyway
+ENV DEBIAN_FRONTEND=noninteractive
 ENV DEBCONF_NOWARNINGS="yes"
-# Define the version of Kubernetes to use.
 ENV K8S_VERSION="v1.29"
-# Define the major version of Node.js to use.
 ENV NODE_MAJOR=18
 
 # setup repo for kubectl
@@ -33,7 +29,7 @@ RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg -
 RUN curl -fsSL "https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb" -o /setup/packages-microsoft-prod.deb && \
 	dpkg -i /setup/packages-microsoft-prod.deb
 
-# Extra packages for realistic runtime
+# Install runtime packages
 RUN apt-get update && apt-get -y upgrade && apt-get install -y --no-install-recommends \
 	apt-transport-https \
 	auditd \
@@ -60,81 +56,67 @@ RUN apt-get update && apt-get -y upgrade && apt-get install -y --no-install-reco
 	tshark \
 	software-properties-common \
 	xxd \
-	zip
+	zip \
+	openjdk-21-jdk 
 
-# Configure sudo for passwordless execution
+# Install Maven
+ENV MAVEN_VERSION=3.9.9
+ENV MAVEN_HOME=/opt/maven
+ENV PATH="${MAVEN_HOME}/bin:${PATH}"
+
+RUN curl -fsSL https://downloads.apache.org/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz \
+    | tar -xz -C /opt && \
+    ln -s /opt/apache-maven-${MAVEN_VERSION} ${MAVEN_HOME}
+
+# Configure sudo
 RUN echo "ALL ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
-
-# Create ssh directory for root
 RUN mkdir -m 0700 /root/.ssh
 
-#
 # PHP setup
-#
 WORKDIR /setup/php
 RUN apt-get update && apt-get install -y --no-install-recommends \
 	php \
 	php-zip \
 	php-gd
 
-# Install Composer
+# Composer install
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" && \
     php -r "if (hash_file('sha384', 'composer-setup.php') === file_get_contents('https://composer.github.io/installer.sig')) { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;" && \
     php composer-setup.php --version=2.5.8 && \
     php -r "unlink('composer-setup.php');" && \
     mv composer.phar /usr/local/bin/
 
-#
-# NPM setup
-#
-# Installs node and npm via the nodejs package, pulled from nodesource.com configured above.
+# NodeJS setup
 WORKDIR /setup/node
 RUN apt-get update && apt-get install -y --no-install-recommends \
 	nodejs
-
 COPY bowerrc /app/.bowerrc
 
-
-#
 # Python setup
-#
 WORKDIR /setup/python
 RUN apt-get update && apt-get install -y --no-install-recommends \
 	python3 \
 	python3-dev \
 	python3-pip
-
-# Some Python packages expect certain dependencies to already be installed
 COPY pypi-packages.txt ./
 RUN pip install --require-hashes --requirement pypi-packages.txt
 
-
-#
-# Rubygems setup
-#
+# Ruby setup
 WORKDIR /setup/ruby
 RUN apt-get update && apt-get install -y --no-install-recommends \
 	ruby \
 	ruby-rubygems
 
-#
 # Rust setup
-#
 WORKDIR /setup/rust
 RUN apt-get update && apt-get install -y --no-install-recommends \
 	rust-all
 
-
 WORKDIR /app
 RUN cargo init
-
-# Remove setup files
 RUN rm -rf /setup
 
-
-#
 # Second stage build
-#
 FROM scratch
 COPY --from=image / /
 WORKDIR /app
@@ -144,26 +126,29 @@ ENV PATH="/usr/local/cargo/bin:${PATH}"
 ENV RUSTUP_HOME="/usr/local/rustup"
 ENV CARGO_HOME="/usr/local/cargo"
 
-# NPM
+# Node
 ENV NODE_PATH="/app/node_modules"
 
-# Test stuff
-RUN ruby --version && php --version && python3 --version && pip --version && node --version && npm --version && rustc --version && cargo --version
+# Java + Maven
+ENV JAVA_HOME="/usr/lib/jvm/java-21-openjdk-amd64"
+ENV MAVEN_HOME="/opt/maven"
+ENV PATH="${JAVA_HOME}/bin:${MAVEN_HOME}/bin:${PATH}"
+COPY pom.xml /app/pom.xml
 
+# Test installations
+RUN ruby --version && php --version && python3 --version && pip --version && node --version && npm --version && rustc --version && cargo --version && java -version && mvn -version
 
-# Add analysis scripts
+# Analysis scripts
 WORKDIR /usr/local/bin/
 COPY analyze-php.php .
 COPY analyze-node.js .
 COPY analyze-python.py .
 COPY analyze-ruby.rb .
 COPY analyze-rust.py .
+COPY analyze-java.py .
+RUN chmod 755 analyze-php.php analyze-node.js analyze-python.py analyze-ruby.rb analyze-rust.py analyze-java.py
 
-RUN chmod 755 analyze-php.php analyze-node.js analyze-python.py analyze-ruby.rb analyze-rust.py
-
-# Ensure that this the last WORKDIR statement, otherwise things like cargo will break
+# Final workdir
 WORKDIR /app
-
-# Set main cmd to 'sleep 30m'
 ENTRYPOINT [ "sleep" ]
 CMD [ "30m" ]

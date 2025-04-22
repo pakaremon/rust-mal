@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
 
-from .forms import PackageSubmitForm, PackageForm
+from .forms import PackageSubmitForm
 
 from .helper import Helper
 import json
@@ -40,8 +40,6 @@ def save_report(reports):
         ips=[dict(t) for t in {tuple(ip.items()) for ip in (reports['install']['ips'] + reports['import']['ips'])}],
         commands=list({tuple(cmd) if isinstance(cmd, list) else cmd for cmd in reports['install']['commands'] + reports['import']['commands']}),
         syscalls=list(syscalls_counter.items()),
-        typosquatting_candidates=reports['typo_candidates'],
-        source_url=reports['sources'],
     )
     the_report.save()
 
@@ -58,8 +56,10 @@ def homepage(request):
 def dynamic_analysis(request):
     # this tool using package-analysis tools to analyze the package.
     if request.method == 'POST':
-        form = PackageForm(request.POST)
+        print("dynamic analysis Post ^^^^")
+        form = PackageSubmitForm(request.POST)
         if form.is_valid():
+            print("dynamic analysis form is valid")
             package_name = form.cleaned_data['package_name']
             package_version = form.cleaned_data['package_version']
             ecosystem = form.cleaned_data['ecosystem']
@@ -69,33 +69,35 @@ def dynamic_analysis(request):
             reports = Helper.run_package_analysis(package_name, package_version, ecosystem)
             return JsonResponse({"dynamic_analysis_report": reports})
 
-    form = PackageForm()
+    form = PackageSubmitForm()
     return render(request, 'package_analysis/analysis/dynamic_analysis.html', {'form': form}) 
 
 
 
 def find_typosquatting(request):
+    print("find typosquatting")
     if request.method == 'POST':
-        print("find typosquatting")
-        form = PackageForm(request.POST)
+        form = PackageSubmitForm(request.POST)
         if form.is_valid():
             package_name = form.cleaned_data['package_name']
             package_version = form.cleaned_data['package_version']
             ecosystem = form.cleaned_data['ecosystem']
 
             # Process the form data (e.g., save to database, call an API, etc.)
-            print(f"Package Name: {package_name}, Package Version: {package_version}, Ecosystem: {ecosystem}")
+            print(f"find oss-squat:package Name: {package_name}, Package Version: {package_version}, Ecosystem: {ecosystem}")
             typo_candidates = Helper.run_oss_squats(package_name, package_version, ecosystem)
-            return JsonResponse({'sources': typo_candidates})
+            print("Typo candidates: ", typo_candidates)
+            return JsonResponse({'typosquatting_candidates': typo_candidates})
         
-    form = PackageForm()
+    form = PackageSubmitForm()
     return render(request, 'package_analysis/analysis/typosquatting.html', {'form': form})
 
 def find_source_code(request):
     if request.method == 'POST':
         print("find source code")
-        form = PackageForm(request.POST)
+        form = PackageSubmitForm(request.POST)
         if form.is_valid():
+            print("find source code form is valid")
             package_name = form.cleaned_data['package_name']
             package_version = form.cleaned_data['package_version']
             ecosystem = form.cleaned_data['ecosystem']
@@ -103,9 +105,10 @@ def find_source_code(request):
             # Process the form data (e.g., save to database, call an API, etc.)
             print(f"Package Name: {package_name}, Package Version: {package_version}, Ecosystem: {ecosystem}")
             sources = Helper.run_oss_find_source(package_name, package_version, ecosystem)
-            return JsonResponse({'sources': sources})
+
+            return JsonResponse({'source_urls': sources})
         
-    form = PackageForm()
+    form = PackageSubmitForm()
     return render(request, 'package_analysis/analysis/findsource.html', {'form': form})
 
 def submit_sample(request):
@@ -147,19 +150,24 @@ def submit_sample(request):
 
 
 def upload_sample(request):
-    ''' Upload sample apk file and analysis it'''
+    ''' Upload sample  analysis it'''
     if request.method == 'POST' and request.FILES['file']:
-        
+         
         file = request.FILES['file']
         fs = FileSystemStorage()
         filename = fs.save(file.name, file)
         uploaded_file_url = fs.url(filename)
-        reports = Helper.handle_uploaded_file(uploaded_file_url) 
+        ecosystem = request.POST.get('ecosystem', None)
+        package_name = request.POST.get('package_name', None)
+        package_version = request.POST.get('package_version', None)
+        
+        reports = Helper.handle_uploaded_file(uploaded_file_url, package_name, package_version, ecosystem)
+        
         # Save to database
-        save_report(reports)
-        latest_report = Report.objects.latest('id')
-        reports['id'] = latest_report.id
-        return JsonResponse(reports)
+        # save_report(reports)
+        # latest_report = Report.objects.latest('id')
+        # reports['id'] = latest_report.id
+        return JsonResponse({"dynamic_analysis_report": reports})
     else:
         return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
     

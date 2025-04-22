@@ -1,50 +1,49 @@
-{% extends "package_analysis/analysis/analysis_layout.html" %}   
+{% extends "package_analysis/homepage/homepage_layout.html" %}   
 {% block body%}
-        <!-- Submission Form -->
-        <section class="bg-white shadow rounded-lg p-6 max-w-lg mx-auto">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4">Submit a Package for find typosquatting candidates</h2>
-                <form id="submitForm" onsubmit="event.preventDefault(); submitForm();" method="post" action="{% url 'find_typosquatting' %}">
-                {% csrf_token %}
-                <br>
-                {{ form.ecosystem.label_tag }}
-                {{ form.ecosystem }}
-                <br>
-                    {{ form.package_name.label_tag }}
-                    {{ form.package_name }}     
-                    <br>                  
-                <div class="suggestions" id="suggestions"></div>
-                {{ form.package_version.label_tag }}
-                {{ form.package_version }}
+        <header class="bg-dark text-white text-center py-5">
+            <div class="container">
+                <!-- color white -->
+                <h1 style="color: white;">Typosquatting candidates finder</h1>
+            </div>
+        </header>
 
-                <br>
+
+
+        <!-- Submission Form -->
+        <section class="bg-white shadow rounded-lg p-4 mx-auto" style="max-width: 600px;">
+            <h2 class="h4 font-weight-bold text-dark mb-3">Submit a package to find Typosquatting candidates</h2>
+            <form id="submitForm" method="post" onsubmit="event.preventDefault(); submitForm();"  action="{% url 'find_typosquatting' %}">
+                {% csrf_token %}
+                <div class="form-group">            
+                    {{ form.ecosystem.label_tag }}
+                    {{ form.ecosystem }}
+                </div>
+                <div class="form-group">
+                    {{ form.package_name.label_tag }}
+                    {{ form.package_name }}
+                </div>
+                <div class="form-group">
+                    <div class="suggestions" id="suggestions"></div>
+                    {{ form.package_version.label_tag }}
+                    {{ form.package_version }}
+                </div>
                 <!-- Submit Button -->
-                <button type="submit"
-                    class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 focus:ring focus:ring-blue-300">
-                    Analyze Package
-                </button>
+            <br> 
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary">
+                        Analyze Package
+                    </button> 
+                </div>
             </form>
-                            
         </section>
-        
         <!-- Loader -->
-        <div id="loader" class="hidden fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50">
-            <div class="loader"></div>
+        <div id="loader" class="position-fixed w-100 h-100 top-0 start-0 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center z-50 d-none" >
+            <div class="spinner"></div>
         </div>
 
+
         <!-- Analysis Feedback Panel -->
-        <section id="feedback-panel" class="mt-8 hidden">
-            <div class="bg-white shadow rounded-lg p-6 max-w-lg mx-auto">
-                <div id="loading-spinner" class="text-center hidden">
-                    <p class="text-gray-700">Analyzing package...</p>
-                </div>
-                <div id="analysis-result" class="hidden">
-                    <h3 class="text-xl font-bold text-gray-800">typosquatting candidates: </h3>
-                    <p id="result-summary" class="text-gray-700 mt-2"></p>
-                </div>
-                <div id="error-message" class="hidden text-red-600">
-                    <p>Something went wrong. Please try again.</p>
-                </div>
-            </div>
+        <section id="feedback-panel" class="mt-4 d-none">
         </section>
 
 {% endblock %}

@@ -6,73 +6,81 @@
 - Linux
 - Podman
 
+### Usage: Wolfi-APK Analysis
 
-### Usage: for wolfi-apk analysis
-
-
+To analyze Wolfi-APK packages, use the following command:
 
 ```bash
 scripts/run_analysis.sh -ecosystem wolfi -package test -local /path/to/test -sandbox-image 'customised_sandbox_for_dynamic_analysis' -mode dynamic
 ```
-## Development
 
-### Building Docker Images with Podman
+### Development
 
-To build Docker images using Podman, follow these steps:
+#### Building Docker Images with Podman
 
-1. **Install Podman**: Ensure Podman is installed on your Linux system. You can install Podman using the following commands:
+1. **Install Podman**: Ensure Podman is installed on your Linux system. Install it using:
 
     ```bash
     sudo apt-get update
     sudo apt-get -y install podman
     ```
 
-    For other Linux distributions, refer to the [official Podman installation guide](https://podman.io/getting-started/installation).
+    For other distributions, refer to the [Podman installation guide](https://podman.io/getting-started/installation).
 
-2. **Modify Dockerfile to rebuild image** in [`/sandboxes/dynamicanalysis/Dockerfile`](./sandboxes/dynamicanalysis/Dockerfile)
+2. **Modify Dockerfile**: Update the Dockerfile located at [`/sandboxes/dynamicanalysis/Dockerfile`](./sandboxes/dynamicanalysis/Dockerfile) as needed.
 
-3. **Sync Sandbox Image**: Run the following command to rebuild the image using Docker and then build the sandbox image from Docker to Podman:
-
-    ```bash
-    $ make sync/sandbox/dynamic_analysis
-    ```
-
-
-    This command will rebuild the image using Docker and then build the sandbox image from Docker to Podman.
-![{724718B7-84C7-4D15-A9C8-204A808972E4}](https://github.com/user-attachments/assets/150ba477-4d84-4b25-9860-759bdf6d4210)
-
-4. **Rebuild Outer Image for Analysis**
-
-To rebuild the outer image for analysis, execute the following command:
-
-```bash
-make build/image/analysis
-```
-
-This command will recompile the outer container image used for analysis.
-
-5. **Run Analysis**: To use locally built sandbox images for analysis, pass the `-nopull` option to `scripts/run_analysis.sh`:
+3. **Sync Sandbox Image**: Rebuild the image using Docker and sync it to Podman:
 
     ```bash
-    ./scripts/run_analysis.sh -ecosystem wolfi -package fijiwashere -version fijiwashere.0.0.0  -local /path/fijiwashere12323-0.0.0-r0.apk -sandbox-image 'wolfi-apk/dynamic-analysis'   -analysis-command 'analyze_wolfi_apk.py' -mode dynamic -nopull  
+    make sync/sandbox/dynamic_analysis
     ```
-    - `-ecosystem`: This option is optional. Default is `wolfi`.
+
+4. **Rebuild Outer Image**: Recompile the outer container image for analysis:
+
+    ```bash
+    make build/image/analysis
+    ```
+
+5. **Run Analysis**: Use locally built sandbox images by adding the `-nopull` option:
+
+    ```bash
+    ./scripts/run_analysis.sh -ecosystem wolfi -package fijiwashere -version fijiwashere.0.0.0 -local /path/fijiwashere12323-0.0.0-r0.apk -sandbox-image 'wolfi-apk/dynamic-analysis' -analysis-command 'analyze_wolfi_apk.py' -mode dynamic -nopull
+    ```
+
+    - `-ecosystem`: Optional, defaults to `wolfi`.
     - `-local`: Use local Wolfi APK files.
     - `-sandbox-image`: Override the default analysis image.
-    - `-analysis-command`: Override the default analysis script. The default command is `analyze_wolfi_apk.py`.
+    - `-analysis-command`: Override the default analysis script (`analyze_wolfi_apk.py`).
     - `-mode dynamic`: Execute only the dynamic analysis phase.
-    - `-nopull`: Ensure package-analysis uses the local image.
+    - `-nopull`: Use the local image.
 
-### Resolving Line Ending Issues when build docker image.
+### Resolving Line Ending Issues
 
-If you encounter issues with line endings, you can use `dos2unix` to convert files to Unix format. To install `dos2unix`, use the following command:
+If you encounter line ending issues, convert files to Unix format using `dos2unix`:
 
 ```bash
 sudo apt-get install dos2unix
-```
-
-To convert a file, use the following command:
-
-```bash
 dos2unix /path/to/your/file
 ```
+
+### Configuration
+
+- Docker
+- Web
+- Python
+
+### Install OSS-Find-Squat
+
+1. Install [`Oss-gadget v0.1.422`](https://github.com/microsoft/OSSGadget/releases/download/v0.1.422/OSSGadget_linux_0.1.422.tar.gz).
+2. [`Extract and build docker`](https://github.com/microsoft/OSSGadget/wiki/Docker-Image)
+3. Build a Docker image for microservice usage.
+
+
+### Static analysis
+- Bandit4mal
+- VirusTotal
+- OSS-detect-backdoor
+
+
+
+

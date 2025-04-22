@@ -1,0 +1,21 @@
+{
+    // Configurations for debugging
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Attach to Gunicorn",
+            "type": "python",
+            "request": "attach",
+            "connect": {
+                "host": "0.0.0.0",
+                "port": 8000 // Match this port with the one used in debugpy
+            },
+            "pathMappings": [
+                {
+                    "localRoot": "${workspaceFolder}",
+                    "remoteRoot": "/app" // Adjust this to match the app's root in the container or server
+                }
+            ]
+        }
+    ]
+}

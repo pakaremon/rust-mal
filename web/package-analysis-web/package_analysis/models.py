@@ -23,10 +23,7 @@ class Report(models.Model):
     ips = models.JSONField(default=list)  # Provide a default value
     commands = models.JSONField(default=list)  # Provide a default value
     syscalls = models.JSONField(default=list)  # Provide a default value
-    # oss-find-typosquatting
-    typosquatting_candidates = models.JSONField(default=list)  # Provide a default value
-    # oss-find-source
-    source_url = models.JSONField(default=list)  # Provide a default value
+
 
     def __str__(self):
         return f"{self.package} {self.time} (seconds)"
@@ -59,5 +56,4 @@ class ReportDynamicAnalysis(models.Model):
 
     def __str__(self):
         return f"{self.package} {self.time} (seconds)"
-    
     

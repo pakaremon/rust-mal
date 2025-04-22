@@ -10,6 +10,7 @@
         overflow-y: scroll;
         display: none;
         z-index: 1000;
+        
     }
 
     .suggestions div {

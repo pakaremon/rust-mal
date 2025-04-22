@@ -1,8 +1,7 @@
 function submitForm() {
-    resetReport();
 
     const loader = document.getElementById('loader');
-    loader.classList.remove('hidden');
+    loader.classList.remove('d-none');
 
     const form = document.getElementById('submitForm');
     const formData = new FormData(form);
@@ -20,7 +19,7 @@ function submitForm() {
     .then(data => {
         console.log('Success:', data);
         // Handle success (e.g., update the UI with the response data)
-            displayReport(data.sources);
+        displayReport(data);
        
     })
     .catch((error) => {
@@ -30,21 +29,18 @@ function submitForm() {
     .finally(() => {
         // Hide the loader
     //   check if loader is not hidden
-        if (!loader.classList.contains('hidden')) {
-            loader.classList.add('hidden');
+        if (!loader.classList.contains('d-none')) {
+            loader.classList.add('d-none');
         };
     });
 
 }
 
 function submitDynamicAnalysisForm() {
-    
+   
+    showLoader();
 
-
-    const loader = document.getElementById('loader');
-    loader.classList.remove('hidden');
-
-    const form = document.getElementById('submitForm');
+    const form = document.getElementById('dynamicForm');
     const formData = new FormData(form);
 
 
@@ -56,7 +52,13 @@ function submitDynamicAnalysisForm() {
             'X-CSRFToken': getCookie('csrftoken') // Include CSRF token for security
         }
     })
-    .then(response => response.json())
+    .then(response => {
+        if (response.headers.get('Content-Type')?.includes('application/json')) {
+            return response.json();
+        } else {
+            throw new Error('Invalid JSON response');
+        }
+    })
     .then(data => {
         console.log('Success:', data);
         // Handle success (e.g., update the UI with the response data)
@@ -69,14 +71,12 @@ function submitDynamicAnalysisForm() {
         // Handle error
     })
     .finally(() => {
-        // Hide the loader
-    //   check if loader is not hidden
-        if (!loader.classList.contains('hidden')) {
-            loader.classList.add('hidden');
-        };
+        hideLoader();
     });
 
 }
+
+
 
 function getCookie(name) {
     let cookieValue = null;
@@ -95,7 +95,7 @@ function getCookie(name) {
 
 function displayDynamicReport(data) {
     const feedbackPanel = document.getElementById('feedback-panel');
-    feedbackPanel.classList.remove('hidden');
+    feedbackPanel.classList.remove('d-none');
 
     // Combine install and execute phases, removing duplicates
     const combinedReport = {
@@ -121,152 +121,146 @@ function displayDynamicReport(data) {
     };
 
     feedbackPanel.innerHTML = `
-        <div class="bg-white shadow rounded-lg p-6 max-w-lg mx-auto">
-            <h1>Report Detail</h1>
-            <div class="report-details">
-                <h2>Package Information</h2>
-                <ul>
-                    <li><strong>Package Name:</strong> ${data.dynamic_analysis_report.packages.package_name}</li>
-                    <li><strong>Package Version:</strong> ${data.dynamic_analysis_report.packages.package_version}</li>
-                    <li><strong>Ecosystem:</strong> ${data.dynamic_analysis_report.packages.ecosystem}</li>
+        <div class="<div report-details card shadow-lg">
+            <div class="card-header bg-primary text-white">
+                <h1 class="card-title">Report Detail</h1>
+            </div>
+            <div class="card-body">
+                <h2 class="h5">Package Information</h2>
+                <ul class="list-group mb-3">
+                    <li class="list-group-item"><strong>Package Name:</strong> ${data.dynamic_analysis_report.packages.package_name}</li>
+                    <li class="list-group-item"><strong>Package Version:</strong> ${data.dynamic_analysis_report.packages.package_version}</li>
+                    <li class="list-group-item"><strong>Ecosystem:</strong> ${data.dynamic_analysis_report.packages.ecosystem}</li>
                 </ul>
 
-                <h2>Analysis Summary</h2>
-                <ul>
-                    <li><strong>Number of Files:</strong> ${combinedReport.num_files}</li>
-                    <li><strong>Number of Commands:</strong> ${combinedReport.num_commands}</li>
-                    <li><strong>Number of Network Connections:</strong> ${combinedReport.num_network_connections}</li>
-                    <li><strong>Number of System Calls:</strong> ${combinedReport.num_system_calls}</li>
+                <h2 class="h5">Analysis Summary</h2>
+                <ul class="list-group mb-3">
+                    <li class="list-group-item"><strong>Number of Files:</strong> ${combinedReport.num_files}</li>
+                    <li class="list-group-item"><strong>Number of Commands:</strong> ${combinedReport.num_commands}</li>
+                    <li class="list-group-item"><strong>Number of Network Connections:</strong> ${combinedReport.num_network_connections}</li>
+                    <li class="list-group-item"><strong>Number of System Calls:</strong> ${combinedReport.num_system_calls}</li>
                 </ul>
 
-                <h2>Files</h2>
-                <ul>
-                    <li><strong>Opened Files:</strong>
-                        <div class="collapsible">
+                <h2 class="h5">Files</h2>
+                <ul class="list-group mb-3">
+                    <li class="list-group-item"><strong>Opened Files:</strong>
+                        <div class="collapse" id="readFiles">
                             <ul>
                                 ${combinedReport.files.read.length > 0 ? combinedReport.files.read.map(path => `<li>${path}</li>`).join('') : '<li>No files read</li>'}
                             </ul>
                         </div>
-                        <button class="toggle-btn">Show More</button>
+                        <button class="btn btn-link" data-bs-toggle="collapse" data-bs-target="#readFiles">Show More</button>
                     </li>
-                    <li><strong>Deleted Files:</strong>
-                        <div class="collapsible">
+                    <li class="list-group-item"><strong>Deleted Files:</strong>
+                        <div class="collapse" id="deletedFiles">
                             <ul>
                                 ${combinedReport.files.delete.length > 0 ? combinedReport.files.delete.map(path => `<li>${path}</li>`).join('') : '<li>No files deleted</li>'}
                             </ul>
                         </div>
-                        <button class="toggle-btn">Show More</button>
+                        <button class="btn btn-link" data-bs-toggle="collapse" data-bs-target="#deletedFiles">Show More</button>
                     </li>
-                    <li><strong>Written Files:</strong>
-                        <div class="collapsible">
+                    <li class="list-group-item"><strong>Written Files:</strong>
+                        <div class="collapse" id="writtenFiles">
                             <ul>
                                 ${combinedReport.files.write.length > 0 ? combinedReport.files.write.map(path => `<li>${path}</li>`).join('') : '<li>No files written</li>'}
                             </ul>
                         </div>
-                        <button class="toggle-btn">Show More</button>
+                        <button class="btn btn-link" data-bs-toggle="collapse" data-bs-target="#writtenFiles">Show More</button>
                     </li>
                 </ul>
 
-                <h2>DNS Queries</h2>
-                <ul>
-                    ${combinedReport.dns.length > 0 ? combinedReport.dns.map(hostname => `<li>${hostname}</li>`).join('') : '<li>No DNS queries</li>'}
+                <h2 class="h5">DNS Queries</h2>
+                <ul class="list-group mb-3">
+                    ${combinedReport.dns.length > 0 ? combinedReport.dns.map(hostname => `<li class="list-group-item">${hostname}</li>`).join('') : '<li class="list-group-item">No DNS queries</li>'}
                 </ul>
 
-                <h2>IP Connections</h2>
-                <ul>
+                <h2 class="h5">IP Connections</h2>
+                <ul class="list-group mb-3">
                     ${combinedReport.ips.length > 0 ? combinedReport.ips.map(ip => `
-                        <li><strong>Address:</strong> ${ip.Address}, <strong>Port:</strong> ${ip.Port}${ip.Hostnames ? `, <strong>Hostname:</strong> ${ip.Hostnames}` : ''}</li>
-                    `).join('') : '<li>No IP connections</li>'}
+                        <li class="list-group-item"><strong>Address:</strong> ${ip.Address}, <strong>Port:</strong> ${ip.Port}${ip.Hostnames ? `, <strong>Hostname:</strong> ${ip.Hostnames}` : ''}</li>
+                    `).join('') : '<li class="list-group-item">No IP connections</li>'}
                 </ul>
 
-                <h2>Executed Commands</h2>
-                <div class="collapsible">
+                <h2 class="h5">Executed Commands</h2>
+                <div class="collapse" id="executedCommands">
                     <ul>
                         ${combinedReport.commands.length > 0 ? combinedReport.commands.map(command => `<li>${command}</li>`).join('') : '<li>No commands executed</li>'}
                     </ul>
                 </div>
-                <button class="toggle-btn">Show More</button>
+                <button class="btn btn-link" data-bs-toggle="collapse" data-bs-target="#executedCommands">Show More</button>
 
-                <h2>System Calls</h2>
-                <div class="collapsible">
+                <h2 class="h5">System Calls</h2>
+                <div class="collapse" id="systemCalls">
                     <ul>
                         ${Object.entries(combinedReport.syscalls).map(([syscall, count]) => `<li>${syscall} : ${count}</li>`).join('')}
                     </ul>
                 </div>
-                <button class="toggle-btn">Show More</button>
+                <button class="btn btn-link" data-bs-toggle="collapse" data-bs-target="#systemCalls">Show More</button>
             </div>
         </div>
     `;
 }
 
+
+function showLoader() {
+//  remove class d-none from loader
+    const loader = document.getElementById('loader');
+    loader.classList.remove('d-none');
+ 
+}
+
+function hideLoader() {
+//  add class d-none to loader
+    const loader = document.getElementById('loader');
+    loader.classList.add('d-none');
+}
+
+
 /**
- * function to display the report in the feedback panel
- * @param {*} data 
+
+ * Display the report in the feedback panel.
+ * @param {Array} sources - The sources to display in the report.
  */
 function displayReport(data) {
-
-    
     const feedbackPanel = document.getElementById('feedback-panel');
-    const loadingSpinner = document.getElementById('loading-spinner');
-    const analysisResult = document.getElementById('analysis-result');
-    const errorMessage = document.getElementById('error-message');
-    
-    // check if data is not empty list
-    if (data.length > 0) {
-        feedbackPanel.classList.remove('hidden');
-        loadingSpinner.classList.add('hidden');
-        analysisResult.classList.remove('hidden');
+    feedbackPanel.classList.remove('d-none');
 
-        const resultSummary = document.getElementById('result-summary');
-        resultSummary.innerHTML = ''; // Clear previous results
-        data.forEach((item, index) => {
-            const p = document.createElement('p');
-            p.textContent = `${index + 1}: ${item}`;
-            resultSummary.appendChild(p);
-        });
-    } else {
-        feedbackPanel.classList.remove('hidden');
-        loadingSpinner.classList.add('hidden');
-        analysisResult.classList.add('hidden');
-        errorMessage.classList.remove('hidden');
+    if (data.typosquatting_candidates) {
+        const typosquattingCandidates = data.typosquatting_candidates.map(candidate => candidate || []).flat();
+        feedbackPanel.innerHTML = `
+            <div class="report-details card shadow-lg">
+                <div class="card-header bg-primary text-white">
+                    <h1 class="card-title">Report Detail</h1>
+                </div>
+                <div class="card-body">
+                    <h2 class="h5">Typosquatting Candidates</h2>
+                    <ul class="list-group mb-3">
+                        ${typosquattingCandidates.length > 0 
+                            ? typosquattingCandidates.map(candidate => `<li class="list-group-item">${candidate}</li>`).join('') 
+                            : '<li class="list-group-item">No typosquatting candidates found</li>'}
+                    </ul>
+                </div>
+            </div>
+        `;
+    }
+
+    if (data.source_urls) {
+        const sources = data.source_urls.map(source => source || []).flat();
+        feedbackPanel.innerHTML = `
+            <div class="report-details card shadow-lg">
+                <div class="card-header bg-primary text-white">
+                    <h1 class="card-title">Report Detail</h1>
+                </div>
+                <div class="card-body">
+                    <h2 class="h5">Source URLs</h2>
+                    <ul class="list-group mb-3">
+                        ${sources.length > 0 
+                            ? sources.map(source => `<li class="list-group-item">${source}</li>`).join('') 
+                            : '<li class="list-group-item">No source URLs found</li>'}
+                    </ul>
+                </div>
+            </div>
+        `;
     }
 }
-
-
-
-/**
- * function to reset the report, everytime the form is submitted
- * @returns {void}
- */
-function resetReport() {
-    const feedbackPanel = document.getElementById('feedback-panel');
-    const loadingSpinner = document.getElementById('loading-spinner');
-    const analysisResult = document.getElementById('analysis-result');
-    const errorMessage = document.getElementById('error-message');
-    
-    feedbackPanel.classList.add('hidden');
-    loadingSpinner.classList.add('hidden');
-    analysisResult.classList.add('hidden');
-    errorMessage.classList.add('hidden');
-}
-
-/**
- * function to display the dynamic report in the feedback panel
- * @returns {void}
- */
-document.addEventListener("DOMContentLoaded", function () {
-    document.querySelectorAll(".toggle-btn").forEach(function (btn) {
-        btn.addEventListener("click", function () {
-            let content = this.previousElementSibling;
-            if (content.style.maxHeight === "150px") {
-                content.style.maxHeight = content.scrollHeight + "px"; // Expand
-                content.style.padding = "10px"; // Add padding when expanded
-                this.textContent = "Show Less";
-            } else {
-                content.style.maxHeight = "150px"; // Collapse
-                content.style.padding = "10px"; // Keep padding when collapsed
-                this.textContent = "Show More";
-            }
-        });
-    });
-});
+       

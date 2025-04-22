@@ -14,6 +14,7 @@ var defaultCommand = map[pkgecosystem.Ecosystem]string{
 	pkgecosystem.Packagist: "/usr/local/bin/analyze-php.php",
 	pkgecosystem.PyPI:      "/usr/local/bin/analyze-python.py",
 	pkgecosystem.RubyGems:  "/usr/local/bin/analyze-ruby.rb",
+	pkgecosystem.Maven:     "/usr/local/bin/analyze-java.py",
 }
 
 func DefaultCommand(ecosystem pkgecosystem.Ecosystem) string {

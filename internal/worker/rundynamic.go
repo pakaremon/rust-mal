@@ -30,7 +30,7 @@ import (
 )
 
 // defaultDynamicAnalysisImage is container image name of the default dynamic analysis sandbox
-const defaultDynamicAnalysisImage = "gcr.io/ossf-malware-analysis/dynamic-analysis"
+const defaultDynamicAnalysisImage = "pakaremon/dynamic-analysis"
 
 /*
 DynamicAnalysisResult holds all data and status from RunDynamicAnalysis.
