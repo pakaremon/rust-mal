@@ -4,3 +4,5 @@
 docker pull pakaremon/ossgadget:latest
 
 docker pull pakaremon/analysis:latest
+
+docker pull pakaremon/dynamic-analysis:latest

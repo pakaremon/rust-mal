@@ -485,10 +485,10 @@ class Helper:
 
         script_path = Helper.find_script_path()
         if local_path:
-            command = f"{script_path} -ecosystem {ecosystem} -package {package_name} -version {package_version}  -mode dynamic -local {local_path}"
+            command = f"{script_path} -ecosystem {ecosystem} -package {package_name} -version {package_version}  -mode dynamic -local {local_path} -nopull"
             print(command)
         else:
-            command = f"{script_path} -ecosystem {ecosystem} -package {package_name} -version {package_version}  -mode dynamic" 
+            command = f"{script_path} -ecosystem {ecosystem} -package {package_name} -version {package_version}  -mode dynamic -nopull" 
 
 
         try:
