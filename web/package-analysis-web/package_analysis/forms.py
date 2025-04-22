@@ -19,9 +19,10 @@ class PackageSubmitForm(forms.Form):
         label='Package Name', 
         max_length=100, 
         widget=forms.TextInput(attrs={
-            'placeholder': 'Submit package name', 
+            'placeholder': 'Enter package name (e.g., for Maven Central: GroupId:artifactId)', 
             'class': 'form-control',   
             'id': 'package_name',
+            'required': 'required',
         })
     )
 
