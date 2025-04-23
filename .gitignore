@@ -1,1 +1,6 @@
 web/package-analysis-web/venv
+web/tools
+web/package-analysis-web/db.sqlite3
+web/package-analysis-web/package_analysis/logs
+web/package-analysis-web/package_analysis/__pycache__
+web/package-analysis-web/staticfiles

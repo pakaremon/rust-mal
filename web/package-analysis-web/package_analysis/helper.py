@@ -315,18 +315,18 @@ class Helper:
             os.makedirs(folder_path)
         
 
-        # executable = r"oss-find-source"
-        # Helper.check_executable_in_path(executable)
-        # command = f'{executable} -o "{dst}" --format sarifv2 pkg:{ecosystem}/{package_name}@{package_version}'
+        executable = r"oss-find-source"
+        Helper.check_executable_in_path(executable)
+        command = f'{executable} -o "{dst}" --format sarifv2 pkg:{ecosystem}/{package_name}@{package_version}'
 
-        command = [
-            "docker", "run", "--rm",
-            "-v", f"/tmp/oss-find-source:{folder_path}",  # Mount the folder path to the same path inside the container
-            "pakaremon/ossgadget:latest", 
-            "/bin/bash", "-c", 
-            f"\"mkdir -p /tmp/oss-find-source && oss-find-source pkg:{ecosystem}/{package_name}@{package_version} --format sarifv2 -o {dst}\""
-        ]
-        print(f"Output saved to {dst} after running the command: {' '.join(command)}")
+        # command = [
+        #     "docker", "run", "--rm",
+        #     "-v", f"/tmp/oss-find-source:{folder_path}",  # Mount the folder path to the same path inside the container
+        #     "pakaremon/ossgadget:latest", 
+        #     "/bin/bash", "-c", 
+        #     f"\"mkdir -p /tmp/oss-find-source && oss-find-source pkg:{ecosystem}/{package_name} --format sarifv2 -o {dst}\""
+        # ]
+        # print(f"Output saved to {dst} after running the command: {' '.join(command)}")
 
         def parse_sarif(sarif_file):
             try:
@@ -427,18 +427,18 @@ class Helper:
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
 
-        # executable = r"oss-find-squats"
-        # Helper.check_executable_in_path(executable)
-        # command = f'{executable} -o "{dst}" --format sarifv2 pkg:{ecosystem}/{package_name}@{package_version}'
+        executable = r"oss-find-squats"
+        Helper.check_executable_in_path(executable)
+        command = f'{executable} -o "{dst}" --format sarifv2 pkg:{ecosystem}/{package_name}@{package_version}'
 
-        command = [
-            "docker", "run", "--rm", 
-            "-v", f"/tmp/oss-find-squats:{folder_path}",  # Mount the folder path to the same path inside the container
-            "pakaremon/ossgadget:latest", 
-            "/bin/bash", "-c", 
-            f"\"mkdir -p /tmp/oss-find-squats && oss-find-squats pkg:{ecosystem}/{package_name}@{package_version} --format sarifv2 -o {dst}\""
-        ]
-        print(f"Output saved to {dst} after running the command: {' '.join(command)}")
+        # command = [
+        #     "docker", "run", "--rm", 
+        #     "-v", f"/tmp/oss-find-squats:{folder_path}",  # Mount the folder path to the same path inside the container
+        #     "pakaremon/ossgadget:latest", 
+        #     "/bin/bash", "-c", 
+        #     f"\"mkdir -p /tmp/oss-find-squats && oss-find-squats pkg:{ecosystem}/{package_name} --format sarifv2 -o {dst}\""
+        # ]
+        # print(f"Output saved to {dst} after running the command: {' '.join(command)}")
 
         def parse_sarif(sarif_file):
             try:
@@ -464,6 +464,7 @@ class Helper:
 
             print("Command: ", command) 
             result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True, timeout=600)
+            print(f"Command executed successfully: {command}")
             print(f"stdout: {result.stdout}")
             print(f"stderr: {result.stderr}")
             package_names = parse_sarif(dst)  
