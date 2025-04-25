@@ -52,10 +52,10 @@ class PackageSubmitForm(forms.Form):
     ecosystem = forms.ChoiceField(
         label='Ecosystem',
         choices=[
+            ('pypi', 'PyPI'),
             ('crates.io', 'Crates.io'),
             ('wolfi', 'Wolfi'),
             ('npm', 'npm'),
-            ('pypi', 'PyPI'),
             ('rubygems', 'RubyGems'),
             ('maven', 'Maven Central'),
             ('packagist', 'Packagist'),

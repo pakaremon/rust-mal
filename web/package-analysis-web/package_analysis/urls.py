@@ -34,6 +34,8 @@ urlpatterns = [
     path("find_typosquatting/", views.find_typosquatting, name="find_typosquatting"),
     # dynamic analysis of the package.
     path("dynamic_analysis/", views.dynamic_analysis, name="dynamic_analysis"),
+    # LastPyMile
+    path("lastpymile/", views.lastpymile, name="lastpymile"),
     path("report/<int:report_id>/", views.report_detail, name="report"),
     path("get_all_report/", views.get_all_report, name="get_report"),
     path("get_report/<int:report_id>/", views.get_report, name="get_report"),

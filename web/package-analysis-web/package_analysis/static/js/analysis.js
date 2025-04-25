@@ -263,4 +263,81 @@ function displayReport(data) {
         `;
     }
 }
-       
+      
+function submitLastPyMile() {
+    showLoader();
+    const form = document.getElementById('submitForm');
+    const formData = new FormData(form);
+
+    fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken') // Include CSRF token for security
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Success:', data);
+        // Handle success (e.g., update the UI with the response data)
+        displayLastbyMileReport(data.lastpymile_report);
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+        // Handle error
+    })
+    .finally(() => {
+        // Hide the loader
+        hideLoader();
+    });
+}
+
+function displayLastbyMileReport(data) {
+
+
+        const feedbackPanel = document.getElementById('feedback-panel');
+        feedbackPanel.classList.remove('d-none');
+        let reportHTML = `            
+        <div class="report-details card shadow-lg">
+            <div class="card-header bg-primary text-white">
+                <h1 class="card-title">Report Detail</h1>
+            </div>
+            <div class="card-body">
+               <h2 class="h5">Package Name: ${data.package.name}</h2>
+                <h2 class="h5">Package Version: ${data.package.version}</h2>
+                <h2>Files Modified in Releases Flagged by Bandit Tool</h2>`;
+
+        data.results.forEach(dt => {
+            reportHTML += `<h3>Release: ${dt.release}</h3>`;
+            const risks = ['phantom_files', 'low_risk_files', 'medium_risk_files', 'high_risk_files'];
+            risks.forEach(risk => {
+            if (dt[risk] && dt[risk].length > 0) {
+                reportHTML += `<h4>${risk.replace('_', ' ').toUpperCase()}</h4><ul>`;
+                dt[risk].forEach(item => {
+                reportHTML += `<li><strong>File:</strong> ${item.file}<br>`;
+                reportHTML += `<strong>File Hash:</strong> ${item.file_hash}<br>`;
+                reportHTML += `<strong>Bandit Report:</strong><ul>`;
+                item.bandit_report.forEach(report => {
+                    reportHTML += `<li><strong>Issue:</strong> ${report.issue_text}<br>`;
+                    reportHTML += `<strong>Severity:</strong> ${report.issue_severity}<br>`;
+                    reportHTML += `<strong>Confidence:</strong> ${report.issue_confidence}<br>`;
+                    reportHTML += `<strong>Line Number:</strong> ${report.line_number}<br>`;
+                    reportHTML += `<strong>Code:</strong> <pre>${report.code}</pre></li>`;
+                });
+                reportHTML += `</ul></li>`;
+                });
+                reportHTML += `</ul>`;
+
+            } else {
+                reportHTML += `<h4>${risk.replace('_', ' ').toUpperCase()}</h4><p>No files found</p>`;
+            }
+            });
+        });
+
+        reportHTML += `</div>
+                </div>`;
+
+        feedbackPanel.innerHTML = reportHTML;
+    }
+
+

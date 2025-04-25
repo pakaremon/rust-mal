@@ -95,3 +95,10 @@ https://www.geeksforgeeks.org/how-to-setup-cron-jobs-in-ubuntu/
 
 https://appliku.com/post/setting-nginx-django-project/
 
+# Ignore file in git
+
+```bash
+git rm -r --cached .
+git add .
+git commit -m "Update .gitignore"
+```

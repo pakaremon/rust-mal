@@ -474,7 +474,58 @@ class Helper:
             print(f"Command failed with error: {e.stderr}")
             raise #always raise the error to the caller
 
+    @staticmethod
+    def run_lastpymile(package_name, package_version=None, ecosystem='pypi'):
+        '''
+        Identify discrepancies between the source code repositories and the published package artifacts in PyPI.
+        By integrating find modified files and bandit tools, reduce the false positive rate of the results.
+        '''
 
+
+        
+
+        current_path = os.path.dirname(os.path.abspath(__file__))
+        lastpymile_path_script = os.path.join(current_path, 'src', 'lastpymile', 'lastpymile.py')
+
+
+        
+        save_path = os.path.join(tempfile.gettempdir(), "lastpymile")
+        os.makedirs(save_path, exist_ok=True)
+        if os.path.exists(f"{save_path}/{package_name}.json"):
+            with open(f"{save_path}/{package_name}.json", 'r') as f:
+                data = json.load(f)
+                return data
+        # package version is optional, run the command
+        # if package_version:
+        #     command = f"python {lastpymile_path_script} {package_name}:{package_version} -f {save_path}/{package_name}.json"
+        # else:
+        command = f"python {lastpymile_path_script}  {package_name} -f {save_path}/{package_name}.json"
+        
+        result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
+        print(f"Command executed successfully: {command}")
+        print(f"stdout: {result.stdout}")
+        print(f"stderr: {result.stderr}")
+        
+
+
+        # read the json file and return the data
+        try:
+            with open(f"{save_path}/{package_name}.json", 'r') as f:
+                data = json.load(f)
+
+                return data
+        except FileNotFoundError as e:
+            raise FileNotFoundError(f"File not found: {e}")
+            
+
+        
+
+        
+        
+
+
+
+        
  
     @staticmethod
     def run_package_analysis(package_name, package_version, ecosystem, local_path=None):
@@ -489,7 +540,10 @@ class Helper:
             command = f"{script_path} -ecosystem {ecosystem} -package {package_name} -version {package_version}  -mode dynamic -local {local_path} -nopull"
             print(command)
         else:
-            command = f"{script_path} -ecosystem {ecosystem} -package {package_name} -version {package_version}  -mode dynamic -nopull" 
+            if package_version == "latest":
+                command = f"{script_path} -ecosystem {ecosystem} -package {package_name} -mode dynamic -nopull"
+            else:
+                command = f"{script_path} -ecosystem {ecosystem} -package {package_name} -version {package_version} -mode dynamic -nopull"
 
 
         try:
@@ -500,7 +554,7 @@ class Helper:
             
             logger.info(result.stdout)
 
-            json_file_path = os.path.join("/tmp/results/", package_name + ".json")
+            json_file_path = os.path.join("/tmp/results/", package_name.lower() + ".json")
             
 
             read_command = f"cat {json_file_path}"

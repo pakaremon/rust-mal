@@ -72,7 +72,22 @@ def dynamic_analysis(request):
     form = PackageSubmitForm()
     return render(request, 'package_analysis/analysis/dynamic_analysis.html', {'form': form}) 
 
+def lastpymile(request):
+    if request.method == 'POST':
+        print("lastpymile Post ^^^^")
+        form = PackageSubmitForm(request.POST)
+        if form.is_valid():
+            print("lastpymile form is valid")
+            package_name = form.cleaned_data['package_name']
+            package_version = form.cleaned_data['package_version']
+            ecosystem = form.cleaned_data['ecosystem']
 
+            # Process the form data (e.g., save to database, call an API, etc.)
+            print(f"Package Name: {package_name}, Package Version: {package_version}, Ecosystem: {ecosystem}")
+            reports = Helper.run_lastpymile(package_name, package_version, ecosystem)
+            return JsonResponse({"lastpymile_report": reports})
+    form = PackageSubmitForm()
+    return render(request, 'package_analysis/analysis/lastpymile.html', {'form': form})
 
 def find_typosquatting(request):
     print("find typosquatting")
@@ -265,6 +280,7 @@ def get_packagist_versions(request):
     import requests
     def get_package_versions(package_name):
         url = f"https://repo.packagist.org/p2/{package_name}.json"
+        print("get_packagist_versions url: ", url)
 
         response = requests.get(url)
         if response.status_code == 200:

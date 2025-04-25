@@ -80,7 +80,7 @@ def extract_top_level_packages(jar_path):
 
 def importPkg(package: Package):
     try:
-        jar_path = get_jar_path(package)
+        jar_path = package.local_path if package.local_path else get_jar_path(package) 
         packages = extract_top_level_packages(jar_path)
         packages = [pk for pk in packages if not pk.startswith('java.') and not pk.startswith('META-INF.')]
 
@@ -105,7 +105,7 @@ def importPkg(package: Package):
         print(e.output.decode())
         traceback.print_exc()
 
-
+# TODO: handle error at import phase in local file analysis
 PHASES = {
     "all": [install, importPkg],
     "install": [install],

@@ -295,6 +295,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                     noVersionsDiv.textContent = "No versions available";
                                     noVersionsDiv.classList.add("no-versions");
                                     versionSuggestions.appendChild(noVersionsDiv);
+                                    packageVersion.value = "latest";
                                 }
                             });
                             suggestions.appendChild(div);
