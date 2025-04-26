@@ -2,49 +2,47 @@
 {% block body%}
     <header class="bg-dark text-white text-center py-5">
         <div class="container">
-            <h1>Secure Open Source Supply Chain</h1>
-            <p class="lead">Dynamic analysis tool open-source packages.</p>
-            <a href="{% url 'dashboard' %}" class="btn btn-primary btn-lg">Try Demo</a>
+            <h1>PackGuard.dev</h1>
+            <p class="lead"></p>
+            <a href="#products" class="btn btn-primary btn-lg">Try Demo</a>
         </div>
     </header>
 
-    <section id="products" class="container my-5">
-        <h2 class="text-center">Products</h2>
-        <div class="row">
-            <div class="col-md-6">
-                 <a href="{%url 'dynamic_analysis'%}">   <h4>Dynamic Analysis</h4> </a>
-
-                    <ul>
-                        <li>Runtime behavior analysis</li>
-                        <li>Syscall tracing</li>
-                        <li>Malware detection</li>
-                    </ul>
-            
-            </div>
-            <div class="col-md-6">
-                <a href="{% url 'find_typosquatting' %}"> <h4>Typosquatting candidate detection</h4>   </a>
-            </div>
+<section id="products" class="container my-5">
+    <h2 class="text-center">Products</h2>
+    <div class="row">
+        <div class="col-md-6">
+            <a href="{% url 'dynamic_analysis' %}"><h4>Dynamic Analysis</h4></a>
+            <ul>
+                <li>Runtime behavior analysis</li>
+                <li>System call tracing</li>
+                <li>Malware detection</li>
+            </ul>
         </div>
-        <div class="row">
-            <div class="col-md-6">
-                 <a href="{%url 'lastpymile' %}"> <h4>LastPyMile</h4> </a>
-                <ul>
-                    <li>Identify discrepancies between the source code repositories and the published package artifacts in PyPI.</li>
-                </ul>
-            </div>
-            <div class="col-md-6">
-                <a href="{% url 'find_source_code' %}"> <h4>Find Source Code Repository</h4> </a>    
-
-            </div>
+        <div class="col-md-6">
+            <a href="{% url 'find_typosquatting' %}"><h4>Typosquatting Candidate Detection</h4></a>
         </div>
-    </section>
+    </div>
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <a href="{% url 'lastpymile' %}"><h4>LastPyMile</h4></a>
+            <ul>
+                <li>Identifies discrepancies between source code repositories and published package artifacts on PyPI.</li>
+            </ul>
+        </div>
+        <div class="col-md-6">
+            <a href="{% url 'find_source_code' %}"><h4>Find Source Code Repository</h4></a>
+        </div>
+    </div>
+</section>
+
 
 
     <section id="demo" class="container my-5">
         <h2 class="text-center">Demo/Live Scan</h2>
         <!-- <p class="text-center"></p> -->
         <div class="text-center">
-            <a href="{% url 'dashboard' %}" class="btn btn-primary btn-lg">Try Demo</a>
+            <a href="#products" class="btn btn-primary btn-lg">Try Demo</a>
         </div>
     </section>
 
