@@ -20,18 +20,36 @@
             </ul>
         </div>
         <div class="col-md-6">
-            <a href="{% url 'find_typosquatting' %}"><h4>Typosquatting Candidate Detection</h4></a>
+            <a href="{% url 'dynamic_analysis' %}"><h4>Open-source package Malware Detection</h4></a>
+            <ul>
+                <li>Signature-based</li>
+                <li>Yara rules</li>
+                <li>Machine Learning/Deep Learning</li>
+                <li>LLMs</li>
+            </ul>
+        </div>
+        <div class="col-md-6">
+            <a href="{% url 'find_typosquatting' %}"><h4>Static AnalysisAnalysis</h4></a>
+            <ul>
+                <li>Package Typosquatting Detection</li>
+                <li>Bandit4Mal</li>
+            </ul>
         </div>
     </div>
     <div class="row mt-4">
         <div class="col-md-6">
-            <a href="{% url 'lastpymile' %}"><h4>LastPyMile</h4></a>
+            <a href="{% url 'lastpymile' %}"><h4>Source Code FinderFinder</h4></a>
             <ul>
-                <li>Identifies discrepancies between source code repositories and published package artifacts on PyPI.</li>
+                <li>PyPI Source Code Finder.</li>
+                <li>npm Source Code Finder.</li>
             </ul>
         </div>
         <div class="col-md-6">
-            <a href="{% url 'find_source_code' %}"><h4>Find Source Code Repository</h4></a>
+            <a href="{% url 'find_source_code' %}"><h4>Identifying Source Package Discrenpances</h4></a>
+            <ul>
+                <li>PyPI Source Code Finder.</li>
+                <li>npm Source Code Finder.</li>
+            </ul>
         </div>
     </div>
 </section>
