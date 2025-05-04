@@ -12,3 +12,5 @@ __pycache__/
 *.py[cod]
 *$py.class
 web/package-analysis-web/oss-gadget.log
+web/package-analysis-web/media
+web/package-analysis-web/package_analysis/src/lastpymile/lastpymile/__pycache__
