@@ -661,10 +661,7 @@ class Helper:
 
         save_path = os.path.join(tempfile.gettempdir(), "lastpymile")
         os.makedirs(save_path, exist_ok=True)
-        if os.path.exists(f"{save_path}/{package_name}.json"):
-            with open(f"{save_path}/{package_name}.json", 'r') as f:
-                data = json.load(f)
-                return data
+
         # package version is optional, run the command
         # if package_version:
         #     command = f"python {lastpymile_path_script} {package_name}:{package_version} -f {save_path}/{package_name}.json"
