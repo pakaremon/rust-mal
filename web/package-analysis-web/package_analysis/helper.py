@@ -669,7 +669,10 @@ class Helper:
         # if package_version:
         #     command = f"python {lastpymile_path_script} {package_name}:{package_version} -f {save_path}/{package_name}.json"
         # else:
-        command = f"python {lastpymile_path_script}  {package_name} -e {ecosystem} -f {save_path}/{package_name}.json"
+        
+        root_path = Helper.find_root_path()
+        python_venv_path = os.path.join(root_path, 'web', 'package-analysis-web', 'venv', 'bin', 'python')
+        command = f"{python_venv_path} {lastpymile_path_script}  {package_name} -e {ecosystem} -f {save_path}/{package_name}.json"
         
         result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
         print(f"Command executed successfully: {command}")
@@ -715,6 +718,7 @@ class Helper:
             else:
                 command = f"{script_path} -ecosystem {ecosystem} -package {package_name} -version {package_version} -mode dynamic -nopull"
 
+        print(command)
 
         try:
             start_time = time.time()
