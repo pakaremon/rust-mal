@@ -16,8 +16,7 @@ from .gitrepository import *
 
 from lastpymile.pkgmanager.pypackage import PyPackage, PyPackageRelease, PyPackageNotFoundException
 from lastpymile.pkgmanager.npmpackage import NpmPackage, NpmPackageNotFoundException, NpmPackageRelease
-
-
+from lastpymile.pkgmanager.abstractpackage import AbstractPackage, PackageRelease
 ###
 ### Internal support classes
 ###
@@ -219,10 +218,10 @@ class MaliciousCodePackageAnalyzer(AbstractPackageAnalysis):
       else:
         raise e
 
-  def __init__(self, pyPackage:PyPackage, **options) -> None:
-    super().__init__(pyPackage, **options)
+  def __init__(self, package:AbstractPackage, **options) -> None:
+    super().__init__(package, **options)
     
-  def _checkPrerequisites(self, package:PyPackage) -> str:
+  def _checkPrerequisites(self, package:AbstractPackage) -> str:
     """
       Method called before the analysis start. Here all the prerequisites for the analysis are checked.
         Parameters:
@@ -233,7 +232,7 @@ class MaliciousCodePackageAnalyzer(AbstractPackageAnalysis):
     if which("bandit") is None:
         return "Bandit is required but has not benn found!"
   
-  def _isReleaseSupported(self, release:pypackage.PyPackageRelease) -> bool:
+  def _isReleaseSupported(self, release: PackageRelease) -> bool:
     """
       Test if the specified release type is supported. If not supported the release is not processed 
         Parameters:
@@ -289,7 +288,7 @@ class MaliciousCodePackageAnalyzer(AbstractPackageAnalysis):
     statistics.addStatistic("processed_files",processed_files)
     return source_files_hashes
 
-  def _scanRelease(self, release:PyPackageRelease, statistics:StageStatisticsData) -> map[str:ReleaseFileDescriptor]:
+  def _scanRelease(self, release:PackageRelease, statistics:StageStatisticsData) -> map[str:ReleaseFileDescriptor]:
     """
       Downlaod and scan the release file, and return an object that will be used in the next analysis phase (_analyzeRelease:release_data).
       In particular, extract the release fial and build a map of all supported files [file_hash,file]
@@ -415,7 +414,7 @@ class MaliciousCodePackageAnalyzer(AbstractPackageAnalysis):
         file_hashes[file_hash]=ReleaseFileDescriptor(folder,relative_file_path)
     return file_hashes
 
-  def _analyzeRelease(self,release:PyPackageRelease, source_data:Any, release_data:Any) ->map[str:Any]:
+  def _analyzeRelease(self,release:PackageRelease, source_data:Any, release_data:Any) ->map[str:Any]:
     """
       Search for phantom files (files that are not found in the git repository) and process them with the bandit4mal tool to found potentially dangerous code
         Parameters:
