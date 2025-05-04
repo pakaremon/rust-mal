@@ -19,7 +19,15 @@ function submitForm() {
     .then(data => {
         console.log('Success:', data);
         // Handle success (e.g., update the UI with the response data)
-        displayReport(data);
+        if (form.action.includes('bandit4mal')) {
+            displayBanditReport(data.bandit4mal_report);
+        }
+        else if (form.action.includes('lastpymile')) {
+            displayLastbyMileReport(data.lastpymile_report);
+        }
+        else {
+            displayReport(data);
+        }
        
     })
     .catch((error) => {
@@ -33,6 +41,72 @@ function submitForm() {
             loader.classList.add('d-none');
         };
     });
+
+}
+
+function displayBanditReport(data) {
+
+    // display analysis malware report, sumary number of critical, high, medium, low alert files 
+    // display file path name and alert type in a table format exmaple below
+
+  var feedbackPanel = document.getElementById('feedback-panel');
+    feedbackPanel.classList.remove('d-none');
+        const fileAlertCounts = data.results.reduce((acc, result) => {
+            const key = result.filename;
+            if (!acc[key]) {
+            acc[key] = { HIGH: 0, MEDIUM: 0, LOW: 0 };
+            }
+            acc[key][result.issue_severity] = (acc[key][result.issue_severity] || 0) + 1;
+            return acc;
+        }, {});
+
+    document.getElementById('critical-alerts').textContent = data.metrics._totals['SEVERITY.HIGH'];
+    document.getElementById('high-alerts').textContent = data.metrics._totals['SEVERITY.MEDIUM'];
+    document.getElementById('medium-alerts').textContent = data.metrics._totals['SEVERITY.LOW'];
+
+    const fileAlertsTable = document.getElementById('file-alerts');
+    fileAlertsTable.innerHTML = Object.entries(fileAlertCounts).map(([filename, counts]) => `
+        <tr>
+            <td>${filename}</td>
+            <td>${counts.HIGH}</td>
+            <td>${counts.MEDIUM}</td>
+            <td>${counts.LOW}</td>
+        </tr>
+    `).join('');
+
+        // feedbackPanel.innerHTML = `
+        //     <div class="card-header bg-primary text-white">
+        //         <h1 class="card-title">Report Detail</h1>
+        //     </div>
+        //     <div class="card-body">
+        //         <h2 class="h5">Analysis Summary</h2>
+        //         <ul class="list-group mb-3">
+        //         <li class="list-group-item"><strong>Number of Critical Alerts:</strong> ${data.metrics._totals['SEVERITY.HIGH']}</li>
+        //         <li class="list-group-item"><strong>Number of High Alerts:</strong> ${data.metrics._totals['SEVERITY.MEDIUM']}</li>
+        //         <li class="list-group-item"><strong>Number of Medium Alerts:</strong> ${data.metrics._totals['SEVERITY.LOW']}</li>
+        //         </ul>
+        //         <h2 class="h5">Files with Alerts</h2>
+        //         <table class="table table-striped table-bordered">
+        //         <thead>
+        //             <tr>
+        //             <th>File Path</th>
+        //             <th>Critical Alerts</th>
+        //             <th>High Alerts</th>
+        //             <th>Medium Alerts</th>
+        //             </tr>
+        //         </thead>
+        //         <tbody>
+        //             ${Object.entries(fileAlertCounts).map(([filename, counts]) => `
+        //             <tr>
+        //                 <td>${filename}</td>
+        //                 <td>${counts.HIGH}</td>
+        //                 <td>${counts.MEDIUM}</td>
+        //                 <td>${counts.LOW}</td>
+        //             </tr>`).join('')}
+        //         </tbody>
+        //         </table>
+        //     </div>
+        // `;
 
 }
 
@@ -65,6 +139,7 @@ function submitDynamicAnalysisForm() {
 
         displayDynamicReport(data);
 
+
     })
     .catch((error) => {
         console.error('Error:', error);
@@ -93,6 +168,72 @@ function getCookie(name) {
     return cookieValue;
 }
 
+function populateDynamicSections(combinedReport) {
+    // Populate Files
+    ['read', 'write', 'delete'].forEach(type => {
+        const filesContent = document.getElementById('files-content');
+        filesContent.innerHTML += `
+            <tr>
+                <td colspan="2"><strong>${type.charAt(0).toUpperCase() + type.slice(1)} Files</strong></td>
+            </tr>
+        `;
+        combinedReport.files[type].slice(0, 100).forEach((path, index) => {
+            filesContent.innerHTML += `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${path}</td>
+                </tr>
+            `;
+        });
+    });
+
+    // Populate DNS Queries
+    const dnsContent = document.getElementById('dns-content');
+    combinedReport.dns.forEach((hostname, index) => {
+        dnsContent.innerHTML += `
+            <tr>
+                <td>${index + 1}</td>
+                <td>${hostname}</td>
+            </tr>
+        `;
+    });
+
+    // Populate IP Connections
+    const ipContent = document.getElementById('ip-content');
+    combinedReport.ips.forEach((ip, index) => {
+        ipContent.innerHTML += `
+            <tr>
+                <td>${index + 1}</td>
+                <td>${ip.Address}</td>
+                <td>${ip.Port}</td>
+                <td>${ip.Hostnames || 'N/A'}</td>
+            </tr>
+        `;
+    });
+
+    // Populate Commands
+    const commandsContent = document.getElementById('commands-content');
+    combinedReport.commands.forEach((command, index) => {
+        commandsContent.innerHTML += `
+            <tr>
+                <td>${index + 1}</td>
+                <td>${command}</td>
+            </tr>
+        `;
+    });
+
+    // Populate Syscalls
+    const syscallsContent = document.getElementById('syscalls-content');
+    combinedReport.syscalls.slice(0, 500).forEach((syscall, index) => {
+        syscallsContent.innerHTML += `
+            <tr>
+                <td>${index + 1}</td>
+                <td>${syscall}</td>
+            </tr>
+        `;
+    });
+}
+
 function displayDynamicReport(data) {
     const feedbackPanel = document.getElementById('feedback-panel');
     feedbackPanel.classList.remove('d-none');
@@ -111,94 +252,139 @@ function displayDynamicReport(data) {
         dns: [...new Set([...data.dynamic_analysis_report.install.dns, ...data.dynamic_analysis_report.execute.dns])],
         ips: [...new Map([...data.dynamic_analysis_report.install.ips, ...data.dynamic_analysis_report.execute.ips].map(ip => [JSON.stringify(ip), ip])).values()],
         commands: [...new Set([...data.dynamic_analysis_report.install.commands, ...data.dynamic_analysis_report.execute.commands])],
-        syscalls: Object.entries({
-            ...data.dynamic_analysis_report.install.syscalls,
-            ...data.dynamic_analysis_report.execute.syscalls
-        }).reduce((acc, [key, value]) => {
-            acc[key] = (data.dynamic_analysis_report.install.syscalls[key] || 0) + (data.dynamic_analysis_report.execute.syscalls[key] || 0);
-            return acc;
-        }, {})
+        syscalls: Object.entries(
+            [...data.dynamic_analysis_report.install.syscalls, ...data.dynamic_analysis_report.execute.syscalls]
+                .reduce((acc, syscall) => {
+                    acc[syscall] = (acc[syscall] || 0) + 1;
+                    return acc; 
+                }, {})
+        )
+        .sort((a, b) => b[1] - a[1]) // Sort by occurrence in descending order
+        .map(([syscall]) => syscall) // Extract only the syscall names
     };
 
-    feedbackPanel.innerHTML = `
-        <div class="<div report-details card shadow-lg">
-            <div class="card-header bg-primary text-white">
-                <h1 class="card-title">Report Detail</h1>
-            </div>
-            <div class="card-body">
-                <h2 class="h5">Package Information</h2>
-                <ul class="list-group mb-3">
-                    <li class="list-group-item"><strong>Package Name:</strong> ${data.dynamic_analysis_report.packages.package_name}</li>
-                    <li class="list-group-item"><strong>Package Version:</strong> ${data.dynamic_analysis_report.packages.package_version}</li>
-                    <li class="list-group-item"><strong>Ecosystem:</strong> ${data.dynamic_analysis_report.packages.ecosystem}</li>
-                </ul>
+    populateDynamicSections(combinedReport);
 
-                <h2 class="h5">Analysis Summary</h2>
-                <ul class="list-group mb-3">
-                    <li class="list-group-item"><strong>Number of Files:</strong> ${combinedReport.num_files}</li>
-                    <li class="list-group-item"><strong>Number of Commands:</strong> ${combinedReport.num_commands}</li>
-                    <li class="list-group-item"><strong>Number of Network Connections:</strong> ${combinedReport.num_network_connections}</li>
-                    <li class="list-group-item"><strong>Number of System Calls:</strong> ${combinedReport.num_system_calls}</li>
-                </ul>
+    // feedbackPanel.innerHTML = `
+    //     <div class="report-details card shadow-lg">
+    //         <div class="card-header bg-primary text-white">
+    //             <h1 class="card-title">Report Detail</h1>
+    //         </div>
+    //         <div class="card-body">
+    //             <h2 class="h5">Package Information</h2>
+    //             <table class="table table-striped table-bordered">
+    //                 <tbody>
+    //                     <tr>
+    //                         <th>Package Name</th>
+    //                         <td>${data.dynamic_analysis_report.packages.package_name}</td>
+    //                     </tr>
+    //                     <tr>
+    //                         <th>Package Version</th>
+    //                         <td>${data.dynamic_analysis_report.packages.package_version}</td>
+    //                     </tr>
+    //                     <tr>
+    //                         <th>Ecosystem</th>
+    //                         <td>${data.dynamic_analysis_report.packages.ecosystem}</td>
+    //                     </tr>
+    //                 </tbody>
+    //             </table>
 
-                <h2 class="h5">Files</h2>
-                <ul class="list-group mb-3">
-                    <li class="list-group-item"><strong>Opened Files:</strong>
-                        <div class="collapse" id="readFiles">
-                            <ul>
-                                ${combinedReport.files.read.length > 0 ? combinedReport.files.read.map(path => `<li>${path}</li>`).join('') : '<li>No files read</li>'}
-                            </ul>
-                        </div>
-                        <button class="btn btn-link" data-bs-toggle="collapse" data-bs-target="#readFiles">Show More</button>
-                    </li>
-                    <li class="list-group-item"><strong>Deleted Files:</strong>
-                        <div class="collapse" id="deletedFiles">
-                            <ul>
-                                ${combinedReport.files.delete.length > 0 ? combinedReport.files.delete.map(path => `<li>${path}</li>`).join('') : '<li>No files deleted</li>'}
-                            </ul>
-                        </div>
-                        <button class="btn btn-link" data-bs-toggle="collapse" data-bs-target="#deletedFiles">Show More</button>
-                    </li>
-                    <li class="list-group-item"><strong>Written Files:</strong>
-                        <div class="collapse" id="writtenFiles">
-                            <ul>
-                                ${combinedReport.files.write.length > 0 ? combinedReport.files.write.map(path => `<li>${path}</li>`).join('') : '<li>No files written</li>'}
-                            </ul>
-                        </div>
-                        <button class="btn btn-link" data-bs-toggle="collapse" data-bs-target="#writtenFiles">Show More</button>
-                    </li>
-                </ul>
+    //             <h2 class="h5">Analysis Summary</h2>
+    //             <table class="table table-striped table-bordered">
+    //                 <tbody>
+    //                     <tr>
+    //                         <th>Number of Files</th>
+    //                         <td>${combinedReport.num_files}</td>
+    //                     </tr>
+    //                     <tr>
+    //                         <th>Number of Commands</th>
+    //                         <td>${combinedReport.num_commands}</td>
+    //                     </tr>
+    //                     <tr>
+    //                         <th>Number of Network Connections</th>
+    //                         <td>${combinedReport.num_network_connections}</td>
+    //                     </tr>
+    //                     <tr>
+    //                         <th>Number of System Calls</th>
+    //                         <td>${combinedReport.num_system_calls}</td>
+    //                     </tr>
+    //                 </tbody>
+    //             </table>
 
-                <h2 class="h5">DNS Queries</h2>
-                <ul class="list-group mb-3">
-                    ${combinedReport.dns.length > 0 ? combinedReport.dns.map(hostname => `<li class="list-group-item">${hostname}</li>`).join('') : '<li class="list-group-item">No DNS queries</li>'}
-                </ul>
+    //             <h2 class="h5">Files</h2>
+    //             ${['read', 'write', 'delete'].map(type => `
+    //                 <h3 class="h6">${type.charAt(0).toUpperCase() + type.slice(1)} Files (${combinedReport.files[type].length})</h3>
+    //                 <table class="table table-striped table-bordered">
+    //                     <thead>
+    //                         <tr>
+    //                             <th>#</th>
+    //                             <th>Path</th>
+    //                         </tr>
+    //                     </thead>
+    //                     <tbody>
+    //                         ${combinedReport.files[type].length > 0 
+    //                             ? combinedReport.files[type].map((path, index) => `<tr><td>${index + 1}</td><td>${path}</td></tr>`).join('') 
+    //                             : '<tr><td colspan="2">No files</td></tr>'}
+    //                     </tbody>
+    //                 </table>
+    //             `).join('')}
 
-                <h2 class="h5">IP Connections</h2>
-                <ul class="list-group mb-3">
-                    ${combinedReport.ips.length > 0 ? combinedReport.ips.map(ip => `
-                        <li class="list-group-item"><strong>Address:</strong> ${ip.Address}, <strong>Port:</strong> ${ip.Port}${ip.Hostnames ? `, <strong>Hostname:</strong> ${ip.Hostnames}` : ''}</li>
-                    `).join('') : '<li class="list-group-item">No IP connections</li>'}
-                </ul>
+    //             <h2 class="h5">DNS Queries (${combinedReport.dns.length})</h2>
+    //             <table class="table table-striped table-bordered">
+    //                 <tbody>
+    //                     ${combinedReport.dns.length > 0 ? combinedReport.dns.map((hostname, index) => `<tr><td>${index + 1}</td><td>${hostname}</td></tr>`).join('') : '<tr><td>No DNS queries</td></tr>'}
+    //                 </tbody>
+    //             </table>
 
-                <h2 class="h5">Executed Commands</h2>
-                <div class="collapse" id="executedCommands">
-                    <ul>
-                        ${combinedReport.commands.length > 0 ? combinedReport.commands.map(command => `<li>${command}</li>`).join('') : '<li>No commands executed</li>'}
-                    </ul>
-                </div>
-                <button class="btn btn-link" data-bs-toggle="collapse" data-bs-target="#executedCommands">Show More</button>
+    //             <h2 class="h5">IP Connections (${combinedReport.ips.length})</h2>
+    //             <table class="table table-striped table-bordered">
+    //                 <thead>
+    //                     <tr>
+    //                         <th>#</th>
+    //                         <th>Address</th>
+    //                         <th>Port</th>
+    //                         <th>Hostname</th>
+    //                     </tr>
+    //                 </thead>
+    //                 <tbody>
+    //                     ${combinedReport.ips.length > 0 ? combinedReport.ips.map((ip, index) => `
+    //                         <tr>
+    //                             <td>${index + 1}</td>
+    //                             <td>${ip.Address}</td>
+    //                             <td>${ip.Port}</td>
+    //                             <td>${ip.Hostnames || 'N/A'}</td>
+    //                         </tr>
+    //                     `).join('') : '<tr><td colspan="4">No IP connections</td></tr>'}
+    //                 </tbody>
+    //             </table>
 
-                <h2 class="h5">System Calls</h2>
-                <div class="collapse" id="systemCalls">
-                    <ul>
-                        ${Object.entries(combinedReport.syscalls).map(([syscall, count]) => `<li>${syscall} : ${count}</li>`).join('')}
-                    </ul>
-                </div>
-                <button class="btn btn-link" data-bs-toggle="collapse" data-bs-target="#systemCalls">Show More</button>
-            </div>
-        </div>
-    `;
+    //             <h2 class="h5">Executed Commands (${combinedReport.commands.length})</h2>
+    //             <table class="table table-striped table-bordered">
+    //                 <tbody>
+    //                     ${combinedReport.commands.length > 0 ? combinedReport.commands.map((command, index) => `<tr><td>${index + 1}</td><td>${command}</td></tr>`).join('') : '<tr><td>No commands executed</td></tr>'}
+    //                 </tbody>
+    //             </table>
+
+    //             <h2 class="h5">System Calls</h2>
+    //             <table class="table table-striped table-bordered">
+    //                 <thead>
+    //                     <tr>
+    //                         <th>#</th>
+    //                         <th>System Call</th>
+    //                     </tr>
+    //                 </thead>
+    //                 <tbody>
+    //                     ${combinedReport.syscalls.length > 0 ? combinedReport.syscalls.map((syscall, index) => `
+    //                         <tr>
+    //                             <td>${index + 1}</td>
+    //                             <td>${syscall}</td>
+    //                         </tr>
+    //                     `).join('') : '<tr><td colspan="2">No system calls</td></tr>'}
+    //                 </tbody>
+    //             </table>
+    //         </div>
+    //     </div>
+    // `;
 }
 
 
@@ -292,6 +478,7 @@ function submitLastPyMile() {
     });
 }
 
+/*
 function displayLastbyMileReport(data) {
 
 
@@ -341,3 +528,112 @@ function displayLastbyMileReport(data) {
     }
 
 
+*/
+
+function displayLastbyMileReport(data) {
+    const feedbackPanel = document.getElementById('feedback-panel');
+    feedbackPanel.classList.remove('d-none');
+
+    let reportHTML = `
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white">
+            <h1 class="card-title">Report</h1>
+        </div>
+        <div class="card-body">
+            <h2 class="h5">Package Name: ${data.package.name}</h2>
+            <h2 class="h5">Package Version: ${data.package.version}</h2>
+            <h2 class="h5">Analysis Date: ${data.date}</h2>
+            <h2 class="h5">Duration: ${data.duration_ms} ms</h2>
+            <h2 class="h5">Status: ${data.completed ? "Completed" : "Incomplete"}</h2>
+        </div>
+    </div>
+    `;
+
+    data.results.forEach(result => {
+        reportHTML += `
+        <div class="mt-4">
+            <h3>Release: ${result.release}</h3>
+            <p>A phantom is a file or line of code in an artifact that doesn't match what's in the source repository.</p>
+        </div>
+        `;
+
+        // Add risk-level tables
+        const risks = ['phantom_files', 'low_risk_files', 'medium_risk_files', 'high_risk_files'];
+        risks.forEach(risk => {
+            if (result[risk] && result[risk].length > 0) {
+                reportHTML += `
+                <div class="mt-4">
+                    <h4>${risk.replace('_', ' ').toUpperCase()}</h4>
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>File</th>
+                                <th>Bandit4mal Alerts</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                result[risk].forEach(file => {
+                    const banditAlertsCount = file.bandit_report 
+                        ? file.bandit_report.filter(alert => alert.issue_severity === 'MEDIUM' || alert.issue_severity === 'HIGH').length 
+                        : 0;
+                    reportHTML += `
+                    <tr>
+                        <td>${file.file}</td>
+                        <td>${banditAlertsCount}</td>
+                    </tr>
+                    `;
+                });
+                reportHTML += `
+                        </tbody>
+                    </table>
+                </div>
+                `;
+            } else {
+                reportHTML += `
+                <div class="mt-4">
+                    <h4>${risk.replace('_', ' ').toUpperCase()}</h4>
+                    <p>No files found</p>
+                </div>
+                `;
+            }
+        });
+    });
+
+    // Add statistics section
+    if (data.statistics && data.statistics.length > 0) {
+        reportHTML += `
+        <div class="mt-4">
+            <h3>Statistics</h3>
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>Stage Name</th>
+                        <th>Duration (ms)</th>
+                        <th>Git Repository</th>
+                        <th>Processed Commits</th>
+                        <th>Processed Files</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+        data.statistics.forEach(stat => {
+            reportHTML += `
+            <tr>
+                <td>${stat.stage_name}</td>
+                <td>${stat.duration_ms}</td>
+                <td>${stat.git_repository || "N/A"}</td>
+                <td>${stat.processed_commits || "N/A"}</td>
+                <td>${stat.processed_files}</td>
+            </tr>
+            `;
+        });
+        reportHTML += `
+                </tbody>
+            </table>
+        </div>
+        `;
+    }
+
+    feedbackPanel.innerHTML = reportHTML;
+}

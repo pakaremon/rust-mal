@@ -21,7 +21,7 @@ async function load() {
             case "rubygems":
             currentUrl = currentUrl + '/get_rubygems_packages';
             break;
-            case "maven_central":
+            case "maven":
             currentUrl = currentUrl + '/get_maven_packages';
             break;
             case "packagist":
@@ -244,8 +244,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (ecosystem.value === "crates.io") {
                     package_names = Object.keys(packages);
                 } else if (["pypi", "npm", "packagist", "rubygems"].includes(ecosystem.value)) {
-                    package_names = packages.packages;
-            }  
+                    package_names = packages.packages;    
+                } else if (ecosystem.value === "maven") {
+                    // packages_names will list GroupId:ArtifactId
+                    //   exxampel of data "groupID: {"artifactID": ["version1", "version2"]}
+
+                    package_names = Object.keys(packages).map(groupId => {
+                        return Object.keys(packages[groupId]).map(artifactId => {
+                            return `${groupId}:${artifactId}`;
+                        });
+                    }).flat();
+                }
 
                 if (value) {
                     const filteredPackages = package_names
@@ -277,6 +286,11 @@ document.addEventListener("DOMContentLoaded", () => {
                                 } else if (ecosystem.value === "rubygems") {
                                     const rubygemsData = await get_rubygems_versions(package_name);
                                     versions = rubygemsData.versions.slice();
+                                } else if (ecosystem.value === "maven") {
+                                    const [groupId, artifactId] = package_name.split(":");
+                                    if (packages[groupId] && packages[groupId][artifactId]) {
+                                        versions = packages[groupId][artifactId].slice().reverse();
+                                    } 
                                 }
                                 versionSuggestions.innerHTML = ""; // Clear previous suggestions
                                 if (versions.length > 0) {

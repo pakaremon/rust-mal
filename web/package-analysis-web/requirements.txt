@@ -18,6 +18,7 @@ dulwich==0.22.8
 fastjsonschema==2.21.1
 filelock==3.18.0
 findpython==0.6.3
+fuzzywuzzy==0.18.0
 gitdb==4.0.12
 GitPython==3.1.44
 gunicorn==23.0.0
@@ -32,11 +33,13 @@ jaraco.context==6.0.1
 jaraco.functools==4.1.0
 jeepney==0.9.0
 keyring==25.6.0
+Levenshtein==0.27.1
 lxml==5.4.0
 markdown-it-py==3.0.0
 mdurl==0.1.2
 more-itertools==10.7.0
 msgpack==1.1.0
+numpy==2.2.5
 packaging==25.0
 pbr==6.1.1
 pbs-installer==2025.4.9
@@ -51,6 +54,7 @@ pycparser==2.22
 Pygments==2.19.1
 pyproject_hooks==1.2.0
 pyreadline3==3.5.4
+python-Levenshtein==0.27.1
 pywin32-ctypes==0.2.3
 PyYAML==6.0.2
 RapidFuzz==3.13.0
@@ -70,5 +74,6 @@ trove-classifiers==2025.4.11.15
 typing_extensions==4.13.1
 tzdata==2025.1
 urllib3==2.3.0
+validators==0.34.0
 virtualenv==20.30.0
 zstandard==0.23.0

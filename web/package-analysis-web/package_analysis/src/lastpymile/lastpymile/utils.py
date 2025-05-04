@@ -91,19 +91,19 @@ class Utils():
 
     if os.path.exists(folder_path):
         # Ensure all files are closed before deletion
-        for root, dirs, files in os.walk(folder_path, topdown=False):
-            for file in files:
-                file_path = os.path.join(root, file)
-                try:
-                    os.chmod(file_path, stat.S_IWUSR)  # Ensure writable
-                except Exception as e:
-                    print(f"Failed to change permissions for {file_path}: {e}")
-            for dir in dirs:
-                dir_path = os.path.join(root, dir)
-                try:
-                    os.chmod(dir_path, stat.S_IWUSR)  # Ensure writable
-                except Exception as e:
-                    print(f"Failed to change permissions for {dir_path}: {e}")
+        # for root, dirs, files in os.walk(folder_path, topdown=False):
+        #     for file in files:
+        #         file_path = os.path.join(root, file)
+        #         try:
+        #             os.chmod(file_path, stat.S_IWUSR)  # Ensure writable
+        #         except Exception as e:
+        #             print(f"Failed to change permissions for {file_path}: {e}")
+        #     for dir in dirs:
+        #         dir_path = os.path.join(root, dir)
+        #         try:
+        #             os.chmod(dir_path, stat.S_IWUSR)  # Ensure writable
+        #         except Exception as e:
+        #             print(f"Failed to change permissions for {dir_path}: {e}")
         try:
             shutil.rmtree(folder_path, onerror=onerror)
         except Exception as e:

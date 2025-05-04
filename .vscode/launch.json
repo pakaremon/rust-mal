@@ -4,7 +4,7 @@
     "configurations": [
         {
             "name": "Python: Attach to Gunicorn",
-            "type": "python",
+            "type": "debugpy",
             "request": "attach",
             "connect": {
                 "host": "0.0.0.0",
@@ -12,7 +12,7 @@
             },
             "pathMappings": [
                 {
-                    "localRoot": "${workspaceFolder}",
+                    "localRoot": "${workspaceFolder}/web/package-analysis-web/package_analysis/src/internal/download_test.py",
                     "remoteRoot": "/app" // Adjust this to match the app's root in the container or server
                 }
             ]

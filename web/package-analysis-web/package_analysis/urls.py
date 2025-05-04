@@ -7,6 +7,7 @@ urlpatterns = [
     path("", views.homepage, name="homepage"),
     path("contact/", views.contact, name="contact"),
     path("dashboard/", views.dashboard, name="dashboard"),
+    path("get_maven_packages/", views.get_maven_packages, name="get_maven_packages"),
     path("get_rust_packages/", views.get_rust_packages, name="get_rust_packages"),
     path("get_pypi_packages/", views.get_pypi_packages, name="get_pypi_packages"),
     # get_pypi_versions is used to get the available versions of the package in pypi.
@@ -32,6 +33,8 @@ urlpatterns = [
     path("find_source_code/", views.find_source_code, name="find_source_code"),
     # find typosquatting of the package.
     path("find_typosquatting/", views.find_typosquatting, name="find_typosquatting"),
+    # static analysis using bandit4mal tool
+    path("bandit4mal/", views.bandit4mal, name="bandit4mal"),
     # dynamic analysis of the package.
     path("dynamic_analysis/", views.dynamic_analysis, name="dynamic_analysis"),
     # LastPyMile

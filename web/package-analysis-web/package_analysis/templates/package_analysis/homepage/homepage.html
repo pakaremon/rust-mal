@@ -1,67 +1,104 @@
 {% extends "package_analysis/homepage/homepage_layout.html" %}
 {% block body%}
-    <header class="bg-dark text-white text-center py-5">
-        <div class="container">
-            <h1>PackGuard.dev</h1>
-            <p class="lead"></p>
-            <a href="#products" class="btn btn-primary btn-lg">Try Demo</a>
-        </div>
-    </header>
+<header class="hero-section text-white text-center py-5">
+    <div class="container">
+        <h1 style="color: black;">PackGuard.dev</h1>
+        <p class="lead" style="color: black;">Your trusted platform for package analysis and malware detection.</p>
+    </div>
+</header>
+
+<style>
+    .card {
+    border: none;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.card-title {
+    font-size: 1.25rem;
+    font-weight: bold;
+}
+
+.card ul {
+    padding-left: 1.5rem;
+    color: #555;
+}
+</style>
 
 <section id="products" class="container my-5">
-    <h2 class="text-center">Products</h2>
+    <h2 class="text-center mb-4">Our Products</h2>
     <div class="row">
-        <div class="col-md-6">
-            <a href="{% url 'dynamic_analysis' %}"><h4>Dynamic Analysis</h4></a>
-            <ul>
-                <li>Runtime behavior analysis</li>
-                <li>System call tracing</li>
-                <li>Malware detection</li>
-            </ul>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <a href="{% url 'dynamic_analysis' %}" class="text-decoration-none">
+                        <h4 class="card-title text-primary">Dynamic Analysis</h4>
+                    </a>
+                    <ul>
+                        <li>Runtime behavior analysis</li>
+                        <li>System call tracing</li>
+                        <li>Malware detection</li>
+                    </ul>
+                </div>
+            </div>
         </div>
-        <div class="col-md-6">
-            <a href="{% url 'dynamic_analysis' %}"><h4>Open-source package Malware Detection</h4></a>
-            <ul>
-                <li>Signature-based</li>
-                <li>Yara rules</li>
-                <li>Machine Learning/Deep Learning</li>
-                <li>LLMs</li>
-            </ul>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h4 class="card-title text-primary">Open-source Package Malware Detection</h4>
+                    <ul>
+                        <li>Signature-based</li>
+                        <li>Yara rules</li>
+                        <li>Machine Learning/Deep Learning</li>
+                        <li>LLMs</li>
+                    </ul>
+                </div>
+            </div>
         </div>
-        <div class="col-md-6">
-            <a href="{% url 'find_typosquatting' %}"><h4>Static AnalysisAnalysis</h4></a>
-            <ul>
-                <li>Package Typosquatting Detection</li>
-                <li>Bandit4Mal</li>
-            </ul>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h4 class="card-title text-primary">Static Analysis</h4>
+                    <ul>
+                        <li><a href="{% url 'find_typosquatting' %}">Package Typosquatting Detection</a></li>
+                        <li><a href="{% url 'bandit4mal' %}" class="text-decoration-none">Bandit4Mal</a></li>
+                    </ul>
+                </div>
+            </div>
         </div>
-    </div>
-    <div class="row mt-4">
-        <div class="col-md-6">
-            <a href="{% url 'lastpymile' %}"><h4>Source Code FinderFinder</h4></a>
-            <ul>
-                <li>PyPI Source Code Finder.</li>
-                <li>npm Source Code Finder.</li>
-            </ul>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <a href="{% url 'find_source_code' %}" class="text-decoration-none">
+                        <h4 class="card-title text-primary">Source Code Finder</h4>
+                    </a>
+                    <ul>
+                        <li>PyPI Source Code Finder</li>
+                        <li>npm Source Code Finder</li>
+                    </ul>
+                </div>
+            </div>
         </div>
-        <div class="col-md-6">
-            <a href="{% url 'find_source_code' %}"><h4>Identifying Source Package Discrenpances</h4></a>
-            <ul>
-                <li>PyPI Source Code Finder.</li>
-                <li>npm Source Code Finder.</li>
-            </ul>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <a href="{% url 'lastpymile' %}" class="text-decoration-none">
+                        <h4 class="card-title text-primary">Identifying Source Package Discrepancies</h4>
+                    </a>
+                    <ul>
+                        <li>PyPI Source Code Finder</li>
+                        <li>npm Source Code Finder</li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </div>
 </section>
 
 
-
-    <section id="demo" class="container my-5">
-        <h2 class="text-center">Demo/Live Scan</h2>
-        <!-- <p class="text-center"></p> -->
-        <div class="text-center">
-            <a href="#products" class="btn btn-primary btn-lg">Try Demo</a>
-        </div>
-    </section>
 
 {% endblock %}

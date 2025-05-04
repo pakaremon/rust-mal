@@ -11,7 +11,7 @@ from django.core.files.storage import FileSystemStorage
 from .models import Package, Report
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
-
+from .src.py2src.py2src.url_finder import   URLFinder
 
 
 
@@ -89,6 +89,23 @@ def lastpymile(request):
     form = PackageSubmitForm()
     return render(request, 'package_analysis/analysis/lastpymile.html', {'form': form})
 
+def bandit4mal(request):
+    print("submit static analysis bandit4mal tools")
+    if request.method == 'POST':
+        form = PackageSubmitForm(request.POST)
+        if form.is_valid():
+            print("bandit4mal form is valid")
+            package_name = form.cleaned_data['package_name']
+            package_version = form.cleaned_data['package_version']
+            ecosystem = form.cleaned_data['ecosystem']
+
+            # Process the form data (e.g., save to database, call an API, etc.)
+            print(f"Package Name: {package_name}, Package Version: {package_version}, Ecosystem: {ecosystem}")
+            reports = Helper.run_bandit4mal(package_name, package_version, ecosystem)
+            return JsonResponse({"bandit4mal_report": reports})
+    form = PackageSubmitForm()
+    return render(request, 'package_analysis/analysis/bandit4mal.html', {'form': form})
+
 def find_typosquatting(request):
     print("find typosquatting")
     if request.method == 'POST':
@@ -118,8 +135,17 @@ def find_source_code(request):
             ecosystem = form.cleaned_data['ecosystem']
 
             # Process the form data (e.g., save to database, call an API, etc.)
-            print(f"Package Name: {package_name}, Package Version: {package_version}, Ecosystem: {ecosystem}")
-            sources = Helper.run_oss_find_source(package_name, package_version, ecosystem)
+            if ecosystem == "pypi":
+                sources = Helper.run_py2src(package_name, package_version, ecosystem)
+            else: 
+                urls = Helper.run_oss_find_source(package_name, package_version, ecosystem)
+                sources = []
+                for url in urls:
+                    if url != "" and URLFinder.test_url_working(URLFinder.normalize_url(url)):
+                        sources.append(URLFinder.real_github_url(url))
+
+                sources = list(set(sources))
+        
 
             return JsonResponse({'source_urls': sources})
         
@@ -234,6 +260,8 @@ def analyzed_samples(request):
     return render(request, 'package_analysis/analyzed_samples.html', {'packages': packages})
 
 
+def get_maven_packages(request):
+    return JsonResponse(Helper.get_maven_packages())
 
 def get_rust_packages(request):
     return JsonResponse(Helper.get_rust_packages())

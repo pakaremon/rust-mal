@@ -8,30 +8,6 @@
 - requests
 - WSL (Windows Subsystem for Linux) on Windows or Linux
 
-## Usage
-
-```bash
-cd rust-mal/web/package-analysis-web
-```
-
-Create Database to store informations:
-
-```bash
-    python manage.py makemigrations
-```
-
-Then apply these migrations to our database, run this command:
-
-```bash
-    python manage.py migrate
-```
-
-Run the server by using this command. 
-```bash
-python manage.py runserver
-```
-
-Access the web interface at [127.0.0.1:8000/package-analysis](http://127.0.0.1:8000/package-analysis)
 
 ## Demo
 ![home page](images/homepage.png)
@@ -80,20 +56,26 @@ OR
 sudo $(which python) manage.py runserver 0.0.0.0:80
 ```
 
-# Install tools
-Install ['Docker in Ubuntu'](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-20-04)
 
-### Install OSS-Find-Squat & OSS-detect-backdoor
+# Install images from docker hub
+```bash
+docker pull pakaremon/ossgadget:latest
 
-1. Install [`Oss-gadget v0.1.422`](https://github.com/microsoft/OSSGadget/releases/download/v0.1.422/OSSGadget_linux_0.1.422.tar.gz).
-2. [`Extract and build docker`](https://github.com/microsoft/OSSGadget/wiki/Docker-Image)
+docker pull pakaremon/analysis:latest
 
+docker pull pakaremon/dynamic-analysis:latest
+```
 
+# Install bandit4mal
 
-# TODO: Automation
-https://www.geeksforgeeks.org/how-to-setup-cron-jobs-in-ubuntu/
+in virtual enviroment, from folder contain 'manage.py'
+```bash
+cd package_analysis/src/bandit4mal
 
-https://appliku.com/post/setting-nginx-django-project/
+python setup.py install
+
+```
+
 
 # Ignore file in git
 

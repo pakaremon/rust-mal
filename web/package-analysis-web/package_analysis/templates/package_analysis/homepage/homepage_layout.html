@@ -16,39 +16,42 @@
 
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="https://packguard.dev">packguard.dev</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="{% url 'homepage' %}">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'homepage' %}#products">Products</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{%url 'contact' %}">Contact</a>
-                    </li>
-                </ul>
-            </div>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="https://packguard.dev">
+            <img src="{% static 'images/logo3.png' %}" alt="PackGuard Logo" width="120" height="100" class="d-inline-block align-text-top">
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="{% url 'homepage' %}">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'homepage' %}#products">Products</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'contact' %}">Contact</a>
+                </li>
+            </ul>
         </div>
-    </nav>
+    </div>
+</nav>
 
 
 
 {% block body%}
 
 {% endblock %}
-<footer id="contact" class="bg-light text-dark text-center py-2 mt-auto" style="position: relative; bottom: 0; width: 100%; box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);">
+
+<!-- <footer id="contact" class="bg-light text-dark text-center py-2 mt-auto" style="position: relative; bottom: 0; width: 100%; box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);">
     <div class="container">
         <p class="mb-1">&copy; 2025 PackGuard.dev. All rights reserved.</p>
         <p class="mb-0">Contact us at <a href="mailto:support@packguard.dev" class="text-dark text-decoration-underline">support@packguard.dev</a></p>
     </div>
-</footer>
+</footer> -->
 
 <script>
     // Ensure footer sticks to the bottom of the page

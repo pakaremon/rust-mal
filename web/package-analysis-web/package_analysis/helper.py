@@ -6,6 +6,7 @@ import os
 import time
 import re
 import git
+from pathlib import Path
 from collections import defaultdict
 from functools import lru_cache
 
@@ -14,7 +15,13 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 import logging
 import shutil
+from collections import Counter
 from .src.utils import log_function_output
+
+from .src.py2src.py2src.url_finder import  GetFinalURL, URLFinder
+from .src.internal.pkgmanager.package import pkg
+from .src.lastpymile.lastpymile.utils import Utils
+
 
 current_path = os.path.dirname(os.path.abspath(__file__))
 log_file = os.path.join(current_path, 'logs', 'helper.log')
@@ -174,7 +181,39 @@ class Helper:
             print(f"Failed to fetch data for package: {package_name}")
             return None
         
+    @staticmethod
+    def get_maven_packages():
 
+        '''
+        get maven packages from maven_packages.json file.
+        data {
+        "groupID: {"artifactID": ["version1", "version2"]}
+        '''
+        def combine_json_files(directory):
+            """Combines multiple JSON files in a directory into a single JSON file.
+
+            Args:
+                directory: The directory containing the JSON files.
+            """
+            combined_data = {}
+            for filename in os.listdir(directory):
+                if filename.endswith(".json"):
+                    filepath = os.path.join(directory, filename)
+                    with open(filepath, 'r') as f:
+                        try:
+                            data = json.load(f)
+                            combined_data.update(data)
+                        except json.JSONDecodeError:
+                            print(f"Skipping invalid JSON file: {filename}")
+
+            return combined_data
+        
+        current_path = os.path.dirname(os.path.abspath(__file__))
+        data = combine_json_files(os.path.join(current_path, 'resources', 'maven_package_names'))
+
+        return data
+
+        
         
     @staticmethod       
     def get_rust_packages():
@@ -304,42 +343,60 @@ class Helper:
             os.remove(local_path)
         return report
 
+    @staticmethod
+    def run_py2src(package_name, package_version, ecosystem):
+
+      url_data = GetFinalURL(package_name).get_final_url()
+      github_url = url_data[0]
+      print("Package name: ", package_name, "Github URL: ", github_url)
+      return [github_url]
+          
+
+
 
     @staticmethod
     def run_oss_find_source(package_name, package_version, ecosystem):
+        '''
+            find source code using oss-gadget
+        '''
         
         ecosystem = Helper.transfer_ecosystem(ecosystem)
         folder_path = os.path.join(tempfile.gettempdir(), "oss-find-source")
-        dst = os.path.join(folder_path, f"{package_name}.sarif")
+        file_save_name = f"{package_name}.sarif"
+        dst = os.path.join(folder_path, file_save_name)
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
         
 
-        executable = r"oss-find-source"
-        Helper.check_executable_in_path(executable)
-        command = f'{executable} -o "{dst}" --format sarifv2 pkg:{ecosystem}/{package_name}@{package_version}'
+        # executable = r"oss-find-source"
+        # Helper.check_executable_in_path(executable)
+        # command = f'{executable} -o "{dst}" --format sarifv2 pkg:{ecosystem}/{package_name}@{package_version}'
 
-        # command = [
-        #     "docker", "run", "--rm",
-        #     "-v", f"/tmp/oss-find-source:{folder_path}",  # Mount the folder path to the same path inside the container
-        #     "pakaremon/ossgadget:latest", 
-        #     "/bin/bash", "-c", 
-        #     f"\"mkdir -p /tmp/oss-find-source && oss-find-source pkg:{ecosystem}/{package_name} --format sarifv2 -o {dst}\""
-        # ]
-        # print(f"Output saved to {dst} after running the command: {' '.join(command)}")
-
+        command = [
+            "docker", "run", "--rm",
+            "-v", f"{folder_path}:/tmp/oss-find-source",  # Mount the folder path to the same path inside the container
+            "pakaremon/ossgadget:latest", 
+            "bash",
+            "-c",
+            f'"mkdir -p /tmp/oss-find-source && oss-find-source pkg:{ecosystem}/{package_name} --format sarifv2 -o /tmp/oss-find-source/{file_save_name}"'
+        ]
+        print(f"Output saved to {dst} after running the command: {' '.join(command)}")
         def parse_sarif(sarif_file):
             try:
-                with open(os.path.join(sarif_file), 'r') as f:
+                with open(sarif_file, 'r') as f:
                     data = json.load(f)
                     url_sources = []
                     for candidate in data['runs'][0]['results']:
                         if candidate:
-                            url_sources.append(candidate['locations'][0]['physicalLocation']['address']['fullyQualifiedName'])
-                    
-                    additional_urls = Helper.get_source_url(package_name, ecosystem)
-                    if additional_urls:
-                        url_sources.append(additional_urls)
+                            location = candidate.get('locations', [])[0]
+                            if location:
+                                address = location.get('physicalLocation', {}).get('address', {})
+                            if 'fullyQualifiedName' in address:
+                                url_sources.append(address['fullyQualifiedName'])
+                            message = candidate.get('message', {}).get('text')
+                            if message:
+                                url_sources.append(message)
+
 
                     return url_sources
             except json.JSONDecodeError as e:
@@ -350,11 +407,13 @@ class Helper:
                 return []
             
         try:
-            if os.path.exists(dst):
-                url_sources = parse_sarif(dst)
-                return url_sources
+            # if os.path.exists(dst):
+            #     url_sources = parse_sarif(dst)
+            #     return url_sources
             
-            subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
+            results = subprocess.run(' '.join(command), shell=True, check=True, capture_output=True, text=True)
+            print(results.stdout)
+            print(results.stderr)
             print(f"Command executed successfully: {command}")
 
             url_sources = parse_sarif(dst)
@@ -390,6 +449,8 @@ class Helper:
             return "gem"
         elif ecosystem == "packagist":
             return "composer"
+        elif ecosystem == "maven":
+            return "maven"
         else:
             raise ValueError(f"Unknown ecosystem: {ecosystem}")
 
@@ -423,22 +484,24 @@ class Helper:
         print(f"find typosquats for package: {package_name}, version: {package_version}, ecosystem: {ecosystem}")
         ecosystem = Helper.transfer_ecosystem(ecosystem)
         folder_path = os.path.join(tempfile.gettempdir(), "oss-find-squats")
-        dst = os.path.join(folder_path, f"{package_name}_{ecosystem}.sarif")
+        file_save_name = f"{package_name}_{ecosystem}.sarif"
+        dst = os.path.join(folder_path, file_save_name)
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
 
-        executable = r"oss-find-squats"
-        Helper.check_executable_in_path(executable)
-        command = f'{executable} -o "{dst}" --format sarifv2 pkg:{ecosystem}/{package_name}@{package_version}'
+        # executable = r"oss-find-squats"
+        # Helper.check_executable_in_path(executable)
+        # command = f'{executable} -o "{dst}" --format sarifv2 pkg:{ecosystem}/{package_name}@{package_version}'
 
-        # command = [
-        #     "docker", "run", "--rm", 
-        #     "-v", f"/tmp/oss-find-squats:{folder_path}",  # Mount the folder path to the same path inside the container
-        #     "pakaremon/ossgadget:latest", 
-        #     "/bin/bash", "-c", 
-        #     f"\"mkdir -p /tmp/oss-find-squats && oss-find-squats pkg:{ecosystem}/{package_name} --format sarifv2 -o {dst}\""
-        # ]
-        # print(f"Output saved to {dst} after running the command: {' '.join(command)}")
+        command = [
+            "docker", "run", "--rm",
+            "-v", f"{folder_path}:/tmp/oss-find-squats",  # Mount the folder path to the same path inside the container
+            "pakaremon/ossgadget:latest", 
+            "bash",
+            "-c",
+            f'"mkdir -p /tmp/oss-find-squats && oss-find-squats pkg:{ecosystem}/{package_name} --format sarifv2 -o /tmp/oss-find-squats/{file_save_name}"'
+        ]
+        print(f"Output saved to {dst} after running the command: {' '.join(command)}")
 
         def parse_sarif(sarif_file):
             try:
@@ -463,7 +526,7 @@ class Helper:
                 return package_names
 
             print("Command: ", command) 
-            result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True, timeout=600)
+            result = subprocess.run(' '.join(command), shell=True, check=True, capture_output=True, text=True, timeout=600)
             print(f"Command executed successfully: {command}")
             print(f"stdout: {result.stdout}")
             print(f"stderr: {result.stderr}")
@@ -475,20 +538,127 @@ class Helper:
             raise #always raise the error to the caller
 
     @staticmethod
+    def run_bandit4mal(package_name, package_version, ecosystem):
+
+        FILE_TEXT_EXTENSION = [
+            '.txt',    # Plain text file
+            '.md',     # Markdown file
+            '.rtf',    # Rich Text Format
+            '.csv',    # Comma-Separated Values
+            '.log',    # Log file
+            '.xml',    # XML file
+            '.yaml',   # YAML Ain't Markup Language
+            '.yml',    # YAML Ain't Markup Language
+            '.ini',    # Initialization file
+            '.conf',   # Configuration file
+            '.cfg',    # Configuration file
+            '.sql',    # SQL file
+            '.tex',    # LaTeX file
+            '.html',   # Hypertext Markup Language
+            '.htm',    # Hypertext Markup Language
+            '.srt',    # SubRip Subtitle
+        ]
+
+
+
+        def parse_bandit_results(file_path):
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                    results = []
+                    number_of_alert = Counter()
+                    for result in data.get('results', []):
+                        file_path = result.get('filename', 'Unknown')
+                        if not file_path.endswith(tuple(FILE_TEXT_EXTENSION)):
+                                if result.get('issue_severity', '').lower() in ['high', 'critical']:
+                                    number_of_alert[file_path] += 1
+                    
+                    for file, count in number_of_alert.most_common():
+                        results.append({
+                            'package': {
+                                'name': package_name,
+                                'version': package_version,
+                                'ecosystem': ecosystem
+                            },
+                            'file': file,
+                            'number_of_alerts': count,
+                        })
+                    
+                    return results
+                        
+            except (json.JSONDecodeError, IOError) as e:
+                print(f"Error processing file {file_path}: {e}")
+                return []
+        # TODO 0 build ecosystem pkg manager: ✅ 
+            # 0.1 find latest version
+            # 0.2 find url archieve
+            # 0.3 download url archieve
+            # 0.4 extract archieve file
+
+        pkg_manager = pkg(package_name, package_version, ecosystem).manager
+        # Check version exists
+        specific_package = pkg_manager.package(package_name, package_version)
+        print(f"Specific package: {specific_package}")
+        download_directory = os.path.join(tempfile.gettempdir(), 'bandit4mal_downloaded')
+        os.makedirs(download_directory, exist_ok=True)
+        archive_path = pkg_manager.download_archive(package_name, package_version, download_directory)
+        print(f"Downloaded archive to: {archive_path}")
+        extract_directory = os.path.join(tempfile.gettempdir(), 'bandit4mal_extracted', pkg_manager.get_base_filename())
+        _ , extracted_dir = pkg_manager.extract_archive(archive_path, output_dir=extract_directory)
+        print(f"Extracted archive to: {extracted_dir}")
+
+        # TODO run bandit4mal
+        root_path = Helper.find_root_path()
+        # web\package-analysis-web\venv\bin\bandit
+        venv_bandit_path = root_path + "/web/package-analysis-web/venv/bin/bandit"
+        json_folder = os.path.join(tempfile.gettempdir(), 'bandit4mal_json_results')
+        os.makedirs(json_folder, exist_ok=True)
+        output_file = os.path.join(json_folder, f"{pkg_manager.get_base_filename()}.json")
+        command = [venv_bandit_path, '-r', extracted_dir, '-f', 'json', '-o', output_file]
+        print(' '.join(command))
+
+        try:
+            result = subprocess.run(command, check=True, capture_output=True, text=True)
+            print(f"Command executed successfully: {' '.join(command)}")
+            print(f"stdout: {result.stdout}")
+            print(f"stderr: {result.stderr}")
+
+
+        except subprocess.CalledProcessError as e:
+            print(f"Command failed with error: {e.stderr}")
+            # raise #always raise the error to the caller
+        
+        # report = parse_bandit_results(output_file)
+
+        try:
+            with open(output_file, "r", encoding="utf-8") as json_file:
+                report = json.load(json_file)
+        except FileNotFoundError:
+            raise
+
+        Utils.rmtree(extract_directory)
+        Utils.rmtree(download_directory)
+        return report
+
+
+
+    @staticmethod
     def run_lastpymile(package_name, package_version=None, ecosystem='pypi'):
         '''
         Identify discrepancies between the source code repositories and the published package artifacts in PyPI.
         By integrating find modified files and bandit tools, reduce the false positive rate of the results.
         '''
 
-
-        
+        # files = ['Colorama.json', 'requests-mock.json', 'six.json']
+        # # for testing purpose, use the local json file
+        # with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src', 'lastpymile', 'tmp', files[2]), 'r') as f:
+        #     data = json.load(f)
+        #     return data
+         
 
         current_path = os.path.dirname(os.path.abspath(__file__))
         lastpymile_path_script = os.path.join(current_path, 'src', 'lastpymile', 'lastpymile.py')
 
-
-        
         save_path = os.path.join(tempfile.gettempdir(), "lastpymile")
         os.makedirs(save_path, exist_ok=True)
         if os.path.exists(f"{save_path}/{package_name}.json"):
@@ -499,7 +669,7 @@ class Helper:
         # if package_version:
         #     command = f"python {lastpymile_path_script} {package_name}:{package_version} -f {save_path}/{package_name}.json"
         # else:
-        command = f"python {lastpymile_path_script}  {package_name} -f {save_path}/{package_name}.json"
+        command = f"python {lastpymile_path_script}  {package_name} -e {ecosystem} -f {save_path}/{package_name}.json"
         
         result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
         print(f"Command executed successfully: {command}")
@@ -608,7 +778,7 @@ class Helper:
             #         'dns': ['example.com', 'new.com'],
             #         'ips': [{'Address': '192.168.1.1', 'Port': 80}, {'Address': '10.0.0.1', 'Port': 22}],
             #         'commands': ['mkdir', 'rm'],
-            #         'syscalls': ['open', 'close']
+            #         'syscalls': ['open', 'close', 'openat', 'openat', ....]
             #     }
             # }
     

@@ -1,9 +1,10 @@
 {% extends "package_analysis/homepage/homepage_layout.html" %}   
 {% block body%}
-        <header class="bg-dark text-white text-center py-5">
+
+
+        <header class="hero-section text-center py-1">
             <div class="container">
-                <!-- color white -->
-                <h1 style="color: white;">LastPyMile</h1>
+                <h1 >LastPyMile</h1>
             </div>
         </header>
 
@@ -11,8 +12,8 @@
 
         <!-- Submission Form -->
         <section class="bg-white shadow rounded-lg p-4 mx-auto" style="max-width: 600px;">
-            <h2 class="h4 font-weight-bold text-dark mb-3">Submit package name and package version of PyPI</h2>
-            <form id="submitForm" method="post" onsubmit="event.preventDefault(); submitLastPyMile();"  action="{% url 'lastpymile' %}">
+            <h2 class="h4 font-weight-bold text-dark mb-3">Submit package name and package version of PyPI or npm</h2>
+            <form id="submitForm" method="post" onsubmit="event.preventDefault(); submitForm();"  action="{% url 'lastpymile' %}">
                 {% csrf_token %}
                 <div class="form-group">            
                     {{ form.ecosystem.label_tag }}
@@ -42,9 +43,17 @@
             <div class="spinner"></div>
         </div>
 
+         <!-- Analysis Feedback Panel -->
+        <div id="feedback-panel" class="container mt-4 d-none">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white text-center">
+                    <h1 class="card-title">Report Detail</h1>
+                </div>
+                <div class="card-body">
+                    
+                </div>
+            </div>
+        </div>
 
-        <!-- Analysis Feedback Panel -->
-        <section id="feedback-panel" class="mt-4 d-none">
-        </section>
 
 {% endblock %}

@@ -6,13 +6,16 @@ from typing import Any, Tuple
 import zipfile, tarfile
 import hashlib
 from subprocess import Popen, PIPE
+import json
 
 from .utils import Utils
 from .abstractpackageanalysis import AbstractPackageAnalysis, StageStatisticsData, AnalysisException
 
-from .pypackage import *
+
 from .gitrepository import *
-from lastpymile import pypackage
+
+from lastpymile.pkgmanager.pypackage import PyPackage, PyPackageRelease, PyPackageNotFoundException
+from lastpymile.pkgmanager.npmpackage import NpmPackage, NpmPackageNotFoundException, NpmPackageRelease
 
 
 ###
@@ -136,14 +139,29 @@ class MaliciousCodePackageAnalyzer(AbstractPackageAnalysis):
     Implementation class of an AbstractPackageAnalysis, that scan and search for malicious code injection in python packages
   """
 
-  __SUPPORTED_RELEASES_TYPES=["whl","zip","tar","gz","bz2","xz","egg"]
+  __SUPPORTED_RELEASES_TYPES=["whl","zip","tar","gz","bz2","xz","egg", "tgz"]
 
   __logger=logging.getLogger("lastpymile.MaliciousCodePackageAnalyzer")
   __report_logger=logging.getLogger("lastpymile_report")
 
 
+
+  @staticmethod
+  def get_package_class(ecosystem: str):
+      """
+      Returns the appropriate package class based on the ecosystem name.
+      """
+      match ecosystem:
+          case "npm":
+              return NpmPackage
+          case "pypi":
+              return PyPackage
+          case _:
+              raise ValueError(f"Unsupported ecosystem: {ecosystem}")
+
+
   @classmethod
-  def createAnaliysisForPackage(cls, package_name:str, package_version:str=None, checked:bool=False,**options) -> MaliciousCodePackageAnalyzer:
+  def createAnaliysisForPackage(cls, package_name:str, package_version:str=None, ecosystem:str=None, checked:bool=False,**options) -> MaliciousCodePackageAnalyzer:
     """
       Static method to create a MaliciousCodePackageAnalyzer object that can be used to analyze a pacakge 
         Parameters:
@@ -165,6 +183,12 @@ class MaliciousCodePackageAnalyzer(AbstractPackageAnalysis):
           A MaliciousCodePackageAnalyzer that can be used to analyze the requested package 
     """
     cls.__logger.info("Searching package '{}' version:{}".format(package_name,"<LATEST>" if package_version is None else package_version))
+
+    if not ecosystem:
+      raise ValueError("Ecosystem must be specified")
+
+    PackageClass = cls.get_package_class(ecosystem)
+
     try:
       if "cache_metadata_folder" in options:
         cache_metadata_folder=options["cache_metadata_folder"]
@@ -173,7 +197,7 @@ class MaliciousCodePackageAnalyzer(AbstractPackageAnalysis):
         data_file=os.path.join(cache_metadata_folder,"{}_{}".format(package_name,package_version if package_version is not None else "LATEST"))
         
         if not os.path.exists(data_file):
-          package_data=PyPackage._getPackageMetadata(package_name,package_version)
+          package_data=PackageClass._getPackageMetadata(package_name,package_version)
           with open(data_file,"w") as f:
             f.write(json.dumps(package_data))
         else:
@@ -181,13 +205,14 @@ class MaliciousCodePackageAnalyzer(AbstractPackageAnalysis):
           with open(data_file, "rb") as f:
             package_data=json.loads(f.read())
             
-        pyPackage=PyPackage(package_data)
+        package=PackageClass(package_data)
       else:
-        pyPackage=PyPackage.searchPackage(package_name,package_version)
-        cls.__logger.info("Package '{}' version:{} FOUND".format(pyPackage.getName(),pyPackage.getVersion()))
+
+        package=PackageClass.searchPackage(package_name,package_version)
+        cls.__logger.info("Package '{}' version:{} FOUND".format(package.getName(),package.getVersion()))
       
-      return MaliciousCodePackageAnalyzer(pyPackage,**options)
-    except PyPackageNotFoundException as e:
+      return MaliciousCodePackageAnalyzer(package,**options)
+    except (PyPackageNotFoundException, NpmPackageNotFoundException) as e:
       cls.__logger.error("Package '{}' version:{} NOT FOUND {}".format(package_name,"<LATEST>" if package_version is None else package_version,e))
       if checked==True:
         return None
@@ -226,7 +251,9 @@ class MaliciousCodePackageAnalyzer(AbstractPackageAnalysis):
         Return (bool):
           True if the file is supported, False otherwise
     """
-    return file_descriptor.getFileName().endswith(".py")
+    return file_descriptor.getFileName().endswith((
+      ".py", ".js"
+    ))
 
   def _scanSources(self, repository:GitRepository, statistics:StageStatisticsData) -> map[str:GitFileDescriptor]:
     """
@@ -315,7 +342,7 @@ class MaliciousCodePackageAnalyzer(AbstractPackageAnalysis):
         return self.__extractZip(release_archive_file,extract_folder)
       elif ext=="tar":
         return self.__extractTar(release_archive_file,extract_folder)
-      elif ext=="gz":
+      elif ext in ["gz","tgz"]:
         return self.__extractTar(release_archive_file,extract_folder,"gz")
       elif ext=="bz2":
         return self.__extractTar(release_archive_file,extract_folder,"bz2")

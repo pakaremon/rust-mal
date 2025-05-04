@@ -1,0 +1,79 @@
+{% extends "package_analysis/homepage/homepage_layout.html" %}   
+{% block body%}
+        <header class="hero-section text-white text-center py-1">
+            <div class="container">
+                <!-- color white -->
+                <h1 style="color: white;">Bandit4mal</h1>
+            </div>
+        </header>
+
+
+
+        <!-- Submission Form -->
+        <section class="bg-white shadow rounded-lg p-4 mx-auto" style="max-width: 600px;">
+            <h2 class="h4 font-weight-bold text-dark mb-3">Submit a package to analyze using bandit4mal</h2>
+            <form id="submitForm" method="post" onsubmit="event.preventDefault(); submitForm();"  action="{% url 'bandit4mal' %}">
+                {% csrf_token %}
+                <div class="form-group">            
+                    {{ form.ecosystem.label_tag }}
+                    {{ form.ecosystem }}
+                </div>
+                <div class="form-group">
+                    {{ form.package_name.label_tag }}
+                    {{ form.package_name }}
+                </div>
+                <div class="form-group">
+                    <div class="suggestions" id="suggestions"></div>
+                    {{ form.package_version.label_tag }}
+                    {{ form.package_version }}
+                    <div class="version-suggestions" id="version-suggestions"></div>
+                </div>
+                <!-- Submit Button -->
+            <br> 
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary">
+                        Analyze Package
+                    </button> 
+                </div>
+            </form>
+        </section>
+        <!-- Loader -->
+        <div id="loader" class="position-fixed w-100 h-100 top-0 start-0 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center z-50 d-none" >
+            <div class="spinner"></div>
+        </div>
+
+
+        <!-- Analysis Feedback Panel -->
+         <!-- Analysis Feedback Panel -->
+<div id="feedback-panel" class="container mt-4 d-none">
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white text-center">
+            <h1 class="card-title">Report Detail</h1>
+        </div>
+        <div class="card-body">
+            <h2 class="h5 text-dark">Analysis Summary</h2>
+            <ul class="list-group mb-3">
+                <li class="list-group-item"><strong>Number of Critical Alerts:</strong> <span id="critical-alerts"></span></li>
+                <li class="list-group-item"><strong>Number of High Alerts:</strong> <span id="high-alerts"></span></li>
+                <li class="list-group-item"><strong>Number of Medium Alerts:</strong> <span id="medium-alerts"></span></li>
+            </ul>
+            <h2 class="h5 text-dark">Files with Alerts</h2>
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>File Path</th>
+                            <th>Critical Alerts</th>
+                            <th>High Alerts</th>
+                            <th>Medium Alerts</th>
+                        </tr>
+                    </thead>
+                    <tbody id="file-alerts">
+                        <!-- Dynamic rows will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

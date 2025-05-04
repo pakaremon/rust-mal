@@ -7,3 +7,8 @@ web/package-analysis-web/staticfiles
 package-analysis-web/package_analysis/src/lastpymile/lastpymile/__pycache__
 .vscode
 web/package-analysis-web/package_analysis/src/lastpymile/tmp
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+web/package-analysis-web/oss-gadget.log

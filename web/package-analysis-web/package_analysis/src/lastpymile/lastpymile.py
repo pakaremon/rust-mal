@@ -41,6 +41,15 @@ class LastPyMileApplication():
       type=str,
       help='Package name can be in the form <package_name>:<package_version>. If no version is specified the latest version is retrieved.'
     )
+    # add ecosystem argument
+    parser.add_argument(
+      '-e', '--ecosystem',
+      type=str,
+      choices=['npm', 'pypi'],
+      default=None,
+      help='Ecosystem name. Supported values are "npm" and "pypi". If not specified, the ecosystem is detected automatically.'
+    )
+
     parser.add_argument(
       '-lv', '--loglevel',
       type=LastPyMileApplication.__logLevelType,
@@ -81,13 +90,14 @@ class LastPyMileApplication():
       pakage=args.package.split(":")
       pakage_name=pakage[0]
       pakage_version=pakage[1] if len(pakage)==2 else None
+      ecosystem=args.ecosystem if args.ecosystem is not None else 'pypi'
       
       
       current_folder=pathlib.Path().resolve()
       tmp_folder=os.path.join(current_folder,"tmp")
       if not os.path.exists(tmp_folder):
         os.makedirs(tmp_folder)
-      package_analysis = MaliciousCodePackageAnalyzer.createAnaliysisForPackage(pakage_name,pakage_version, checked=True)
+      package_analysis = MaliciousCodePackageAnalyzer.createAnaliysisForPackage(pakage_name,pakage_version, ecosystem, checked=True)
       if package_analysis is not None:
         analysis_report=package_analysis.startAnalysis()
         json_report=json.dumps(analysis_report,indent=3)

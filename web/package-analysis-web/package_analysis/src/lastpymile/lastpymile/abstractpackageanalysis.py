@@ -8,7 +8,7 @@ from datetime import datetime
 from typing import Any
 
 from .utils import Utils
-from .pypackage import PyPackage, PyPackageRelease
+from .pkgmanager.abstractpackage import AbstractPackage, PackageNotFoundException, PackageRelease
 from .gitrepository import GitRepository
 
 class AbstractPackageAnalysis(ABC):
@@ -27,8 +27,8 @@ class AbstractPackageAnalysis(ABC):
     _analyzeRelease(self,release:PyPackageRelease,source_data:object,release_data:object):
   """
 
-  def __init__(self, pyPackage:PyPackage, **options) -> None:
-    self.pyPackage=pyPackage
+  def __init__(self, package:AbstractPackage, **options) -> None:
+    self.package=package
     self.__logger=logging.getLogger("lastpymile."+type(self).__name__)
     self.__options=options
     self.__analysis_in_progress=False
@@ -36,7 +36,7 @@ class AbstractPackageAnalysis(ABC):
     
     cache_folder=self._getOption("cache_folder",None)
     if cache_folder is not None:
-      cache_folder=os.path.join(cache_folder,pyPackage.getName()+"_"+pyPackage.getVersion())
+      cache_folder=os.path.join(cache_folder,package.getName()+"_"+package.getVersion())
       if not os.path.exists(cache_folder):
         os.makedirs(cache_folder)
     self._cache_folder=cache_folder
@@ -73,9 +73,9 @@ class AbstractPackageAnalysis(ABC):
       raise AnalysisException("Analysis already in progress")
     self.__analysis_in_progress=True
 
-    analysis_report=AbstractPackageAnalysis.AnalysisReport(self.pyPackage)
+    analysis_report=AbstractPackageAnalysis.AnalysisReport(self.package)
 
-    prerequisite_error=self._checkPrerequisites(self.pyPackage)
+    prerequisite_error=self._checkPrerequisites(self.package)
     if prerequisite_error is not None :
       if isinstance(prerequisite_error,str):
         self.__logger.critical(prerequisite_error)
@@ -96,7 +96,7 @@ class AbstractPackageAnalysis(ABC):
       self._tmpFolder=None
       self.__analysis_in_progress=False
       
-    self.__logger.info("Package {} version:{} Analysis TERMINATED in {} seconds".format(self.pyPackage.getName(),self.pyPackage.getVersion(),analysis_report.getAnalysisDurationMs()/1000))
+    self.__logger.info("Package {} version:{} Analysis TERMINATED in {} seconds".format(self.package.getName(),self.package.getVersion(),analysis_report.getAnalysisDurationMs()/1000))
     return analysis_report.getReport()
 
   def __doAnalysis(self, analysis_report:AnalysisReport) ->None:
@@ -106,10 +106,10 @@ class AbstractPackageAnalysis(ABC):
           analysis_report (AnalysisReport): AnalysisReport object used to store and organize the analyis result
     """
 
-    self.__logger.info("Package '{}' version:{} Analysis STARTED".format(self.pyPackage.getName(),self.pyPackage.getVersion()))
+    self.__logger.info("Package '{}' version:{} Analysis STARTED".format(self.package.getName(),self.package.getVersion()))
     
     releases=[]
-    for release in self.pyPackage.getRelaeses():
+    for release in self.package.getRelaeses():
       if self._isReleaseSupported(release)==True:
         releases.append(release)
 
@@ -121,18 +121,18 @@ class AbstractPackageAnalysis(ABC):
     ### SOURCES PROCESSING
     ###
     try:
-      self.__logger.info("Sources processing for package '{}' STARTED".format(self.pyPackage.getName(),self.pyPackage.getVersion()))
+      self.__logger.info("Sources processing for package '{}' STARTED".format(self.package.getName(),self.package.getVersion()))
       stats_data=StageStatisticsData("processing_sources")
       sources_stage_data=self.__prepareSources(stats_data)
       stats_data.stageCompleted()
       analysis_report.addStatistics(stats_data)
-      self.__logger.info("Sources processing for package '{}' TERMINATED".format(self.pyPackage.getName()))
+      self.__logger.info("Sources processing for package '{}' TERMINATED".format(self.package.getName()))
     except AnalysisException as e:
       if self.__logger.isEnabledFor(logging.DEBUG):
         import traceback
-        self.__logger.error("Sources processing for package '{}' TERMINATED with an ERROR:\n{}".format(self.pyPackage.getName(),traceback.format_exc()))
+        self.__logger.error("Sources processing for package '{}' TERMINATED with an ERROR:\n{}".format(self.package.getName(),traceback.format_exc()))
       else:
-        self.__logger.error("Sources processing for package '{}' TERMINATED with an ERROR: {}".format(self.pyPackage.getName(),e))
+        self.__logger.error("Sources processing for package '{}' TERMINATED with an ERROR: {}".format(self.package.getName(),e))
       analysis_report.failed(str(e))
       return
       
@@ -172,7 +172,7 @@ class AbstractPackageAnalysis(ABC):
       tmp_folder= tempfile.mkdtemp()
     else:
       import time
-      tmp_folder= os.path.join(root_tmp_folder,"lpm_"+(str(round(time.time() * 1000)).zfill(10))+"_"+Utils.sanitizeFolderName(self.pyPackage.getName(),20)+"_"+Utils.sanitizeFolderName(self.pyPackage.getVersion()))
+      tmp_folder= os.path.join(root_tmp_folder,"lpm_"+(str(round(time.time() * 1000)).zfill(10))+"_"+Utils.sanitizeFolderName(self.package.getName(),20)+"_"+Utils.sanitizeFolderName(self.package.getVersion()))
       if os.path.exists(tmp_folder):
         Utils.rmtree(tmp_folder)
         os.makedirs(tmp_folder)
@@ -181,7 +181,7 @@ class AbstractPackageAnalysis(ABC):
     return tmp_folder
 
   @abstractmethod
-  def _isReleaseSupported(self, release:PyPackageRelease) -> bool:
+  def _isReleaseSupported(self, release:PackageRelease) -> bool:
     """
       Test if the specified release type is supported. If not supported the release is not processed
       This method mus be sublcassed
@@ -217,17 +217,17 @@ class AbstractPackageAnalysis(ABC):
       repository=GitRepository.loadFromPath(repository_fodler)
       git_rep=repository_fodler
     else:
-      git_url=self.pyPackage.getGitRepositoryUrl()
+      git_url=self.package.getGitRepositoryUrl()
       if git_url is None:
         raise AnalysisException("Could not find a valid source repository")
-      repository=GitRepository.cloneFromUrl(self.pyPackage.getGitRepositoryUrl(),clone_folder)
-      git_rep=self.pyPackage.getGitRepositoryUrl()
+      repository=GitRepository.cloneFromUrl(self.package.getGitRepositoryUrl(),clone_folder)
+      git_rep=self.package.getGitRepositoryUrl()
       
     statistics.addStatistic("git_repository",git_rep)     
     return self._scanSources(repository,statistics)
 
   @abstractmethod
-  def _checkPrerequisites(self, package:PyPackage) -> str:
+  def _checkPrerequisites(self, package:AbstractPackage) -> str:
     """
       Method called before the analysis start. Here all the prerequisites for the analysis are checked.
       This method mus be sublcassed
@@ -253,7 +253,7 @@ class AbstractPackageAnalysis(ABC):
     pass
 
   @abstractmethod
-  def _scanRelease(self,release:PyPackageRelease, statistics:StageStatisticsData) -> Any:
+  def _scanRelease(self,release:PackageRelease, statistics:StageStatisticsData) -> Any:
     """
       Abstract method where release file are aextracted and prepocessed. This method shoud return an object that will be used in the next analysis phase (_analyzeRelease:release_data).
       This method mus be sublcassed
@@ -267,7 +267,7 @@ class AbstractPackageAnalysis(ABC):
     pass
 
   @abstractmethod
-  def _analyzeRelease(self,release:PyPackageRelease, source_data:Any, release_data:Any) -> map[str:Any]:
+  def _analyzeRelease(self,release:PackageRelease, source_data:Any, release_data:Any) -> map[str:Any]:
     """
       Process the data from the previous phases and return a report
         Parameters:
@@ -285,10 +285,10 @@ class AbstractPackageAnalysis(ABC):
       Conveninece class to store the analyis statistics and resutls
     """
 
-    def __init__(self,pyPackage):
+    def __init__(self,package:AbstractPackage) -> None:
       self.start_time=time.time()
       self.analysis_report={
-        "package":{"name":pyPackage.getName(),"version":pyPackage.getVersion()},
+        "package":{"name":package.getName(),"version":package.getVersion()},
         "date":datetime.now().strftime("%d/%m/%Y at %H:%M:%S.%f"),
         "duration_ms":"unknown",
         "completed":None,

@@ -1,9 +1,9 @@
 {% extends "package_analysis/homepage/homepage_layout.html" %}   
 {% block body%}
-        <header class="bg-dark text-white text-center py-1">
+        <header class="hero-section text-white text-center py-1">
             <div class="container">
                 <!-- color white -->
-                <h1 style="color: white;">Dynamic Analysis</h1>
+                <h1 style="color: black;">Dynamic Analysis</h1>
             </div>
         </header>
 
@@ -17,6 +17,20 @@
             background-color: #f8f9fa; /* Light gray for inactive */
             color: #6c757d; /* Muted text color */
         }
+
+
+        .card {
+            border-radius: 8px;
+        }
+
+        .card-header {
+            font-weight: bold;
+        }
+
+        .btn-outline-primary {
+            font-size: 0.9rem;
+        }
+
     </style>
 
     <script>
@@ -95,7 +109,133 @@
 
 
         <!-- Analysis Feedback Panel -->
-        <section id="feedback-panel" class="mt-4 d-none">
-        </section>
+<div id="feedback-panel" class="container mt-4 d-none">
+    <!-- Files Section -->
+    <div class="card mb-3" style="border-left: 5px solid lightgreen;">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Files</h5>
+            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#files-table" aria-expanded="false" aria-controls="files-table">
+                Toggle
+            </button>
+        </div>
+        <div id="files-table" class="collapse">
+            <div class="card-body">
+                <table class="table table-striped table-bordered">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Path</th>
+                        </tr>
+                    </thead>
+                    <tbody id="files-content">
+                        <!-- Dynamic content will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- DNS Section -->
+    <div class="card mb-3" style="border-left: 5px solid lightblue;">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">DNS Queries</h5>
+            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#dns-table" aria-expanded="false" aria-controls="dns-table">
+                Toggle
+            </button>
+        </div>
+        <div id="dns-table" class="collapse">
+            <div class="card-body">
+                <table class="table table-striped table-bordered">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Hostname</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dns-content">
+                        <!-- Dynamic content will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- IP Section -->
+    <div class="card mb-3" style="border-left: 5px solid lightcoral;">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">IP Connections</h5>
+            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#ip-table" aria-expanded="false" aria-controls="ip-table">
+                Toggle
+            </button>
+        </div>
+        <div id="ip-table" class="collapse">
+            <div class="card-body">
+                <table class="table table-striped table-bordered">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Address</th>
+                            <th>Port</th>
+                            <th>Hostname</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ip-content">
+                        <!-- Dynamic content will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Commands Section -->
+    <div class="card mb-3" style="border-left: 5px solid lightyellow;">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Executed Commands</h5>
+            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#commands-table" aria-expanded="false" aria-controls="commands-table">
+                Toggle
+            </button>
+        </div>
+        <div id="commands-table" class="collapse">
+            <div class="card-body">
+                <table class="table table-striped table-bordered">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Command</th>
+                        </tr>
+                    </thead>
+                    <tbody id="commands-content">
+                        <!-- Dynamic content will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Syscalls Section -->
+    <div class="card mb-3" style="border-left: 5px solid lightgray;">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">System Calls</h5>
+            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#syscalls-table" aria-expanded="false" aria-controls="syscalls-table">
+                Toggle
+            </button>
+        </div>
+        <div id="syscalls-table" class="collapse">
+            <div class="card-body">
+                <table class="table table-striped table-bordered">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>System Call</th>
+                        </tr>
+                    </thead>
+                    <tbody id="syscalls-content">
+                        <!-- Dynamic content will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 
 {% endblock %}
