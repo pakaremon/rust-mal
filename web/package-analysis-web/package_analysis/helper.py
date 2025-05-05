@@ -706,14 +706,30 @@ class Helper:
         # for now, just print the command to the console
 
         script_path = Helper.find_script_path()
+        image_name = "docker.io/pakaremon/dynamic-analysis:latest"
+        try:
+            # Check if the image exists locally
+            subprocess.run(f"docker image inspect {image_name}", shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            image_exists = True
+        except subprocess.CalledProcessError:
+            image_exists = False
+
         if local_path:
-            command = f"{script_path} -ecosystem {ecosystem} -package {package_name} -version {package_version}  -mode dynamic -local {local_path} -nopull"
-            print(command)
+            if image_exists:
+                command = f"{script_path} -ecosystem {ecosystem} -package {package_name} -version {package_version} -mode dynamic -local {local_path} -nopull"
+            else:
+                command = f"{script_path} -ecosystem {ecosystem} -package {package_name} -version {package_version} -mode dynamic -local {local_path}"
         else:
             if package_version == "latest":
-                command = f"{script_path} -ecosystem {ecosystem} -package {package_name} -mode dynamic -nopull"
+                if image_exists:
+                    command = f"{script_path} -ecosystem {ecosystem} -package {package_name} -mode dynamic -nopull"
+                else:
+                    command = f"{script_path} -ecosystem {ecosystem} -package {package_name} -mode dynamic"
             else:
-                command = f"{script_path} -ecosystem {ecosystem} -package {package_name} -version {package_version} -mode dynamic -nopull"
+                if image_exists:
+                    command = f"{script_path} -ecosystem {ecosystem} -package {package_name} -version {package_version} -mode dynamic -nopull"
+                else:
+                    command = f"{script_path} -ecosystem {ecosystem} -package {package_name} -version {package_version} -mode dynamic"
 
         print(command)
 
