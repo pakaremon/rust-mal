@@ -47,7 +47,7 @@ class Helper:
         else:
             command_search_analysis_script = "pwd"
         output_path = subprocess.run(command_search_analysis_script,
-                                      shell=True, check=True, capture_output=True,
+                                      shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                         text=True).stdout.strip()
         # back two directories to get the root directory of Pack-a-mal
         output_list = output_path.split("/")[:-2]
