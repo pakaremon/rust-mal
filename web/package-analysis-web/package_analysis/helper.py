@@ -715,20 +715,20 @@ class Helper:
 
         if local_path:
             if image_exists:
-                command = f"{script_path} -ecosystem {ecosystem} -package {package_name} -version {package_version} -mode dynamic -local {local_path} -nopull"
+                command = f"{script_path} -ecosystem {ecosystem} -package {package_name} -version {package_version} -mode dynamic -local {local_path} -nopull -nointeractive"
             else:
-                command = f"{script_path} -ecosystem {ecosystem} -package {package_name} -version {package_version} -mode dynamic -local {local_path}"
+                command = f"{script_path} -ecosystem {ecosystem} -package {package_name} -version {package_version} -mode dynamic -local {local_path} -nointeractive"
         else:
-            if package_version == "latest":
+            if package_version == "latest": 
                 if image_exists:
-                    command = f"{script_path} -ecosystem {ecosystem} -package {package_name} -mode dynamic -nopull"
+                    command = f"{script_path} -ecosystem {ecosystem} -package {package_name} -mode dynamic -nopull -nointeractive"
                 else:
-                    command = f"{script_path} -ecosystem {ecosystem} -package {package_name} -mode dynamic"
+                    command = f"{script_path} -ecosystem {ecosystem} -package {package_name} -mode dynamic -nointeractive"
             else:
                 if image_exists:
-                    command = f"{script_path} -ecosystem {ecosystem} -package {package_name} -version {package_version} -mode dynamic -nopull"
+                    command = f"{script_path} -ecosystem {ecosystem} -package {package_name} -version {package_version} -mode dynamic -nopull -nointeractive"
                 else:
-                    command = f"{script_path} -ecosystem {ecosystem} -package {package_name} -version {package_version} -mode dynamic"
+                    command = f"{script_path} -ecosystem {ecosystem} -package {package_name} -version {package_version} -mode dynamic -nointeractive"
 
         print(command)
 
