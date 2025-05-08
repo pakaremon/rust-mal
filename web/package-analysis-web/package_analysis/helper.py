@@ -410,10 +410,9 @@ class Helper:
             #     url_sources = parse_sarif(dst)
             #     return url_sources
             
-            results = subprocess.run(' '.join(command), shell=True, check=True, capture_output=True, text=True)
-            print(results.stdout)
-            print(results.stderr)
-            print(f"Command executed successfully: {command}")
+            results = subprocess.run(' '.join(command), shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            
+            logger.info("Oss-find-source output:\n%s", results.stdout)
 
             url_sources = parse_sarif(dst)
             print(f"URL sources found: {url_sources}")
@@ -525,10 +524,9 @@ class Helper:
                 return package_names
 
             print("Command: ", command) 
-            result = subprocess.run(' '.join(command), shell=True, check=True, capture_output=True, text=True, timeout=600)
+            result = subprocess.run(' '.join(command), shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=600)
             print(f"Command executed successfully: {command}")
-            print(f"stdout: {result.stdout}")
-            print(f"stderr: {result.stderr}")
+            logger.info("Oss-find-squats output:\n%s", result.stdout)
             package_names = parse_sarif(dst)  
             return package_names
 
@@ -617,10 +615,9 @@ class Helper:
         print(' '.join(command))
 
         try:
-            result = subprocess.run(command, check=True, capture_output=True, text=True)
+            result = subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             print(f"Command executed successfully: {' '.join(command)}")
-            print(f"stdout: {result.stdout}")
-            print(f"stderr: {result.stderr}")
+            logger.info("Bandit4mal output:\n%s", result.stdout)
 
 
         except subprocess.CalledProcessError as e:
@@ -670,10 +667,8 @@ class Helper:
         python_venv_path = os.path.join(root_path, 'web', 'package-analysis-web', 'venv', 'bin', 'python')
         command = f"{python_venv_path} {lastpymile_path_script}  {package_name} -e {ecosystem} -f {save_path}/{package_name}.json"
         
-        result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
-        print(f"Command executed successfully: {command}")
-        print(f"stdout: {result.stdout}")
-        print(f"stderr: {result.stderr}")
+        result = subprocess.run(command, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        logger.info("Lastpymile output:\n%s", result.stdout)
         
 
 
@@ -734,11 +729,14 @@ class Helper:
 
         try:
             start_time = time.time()
-            result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True, encoding='utf-8')
+            # result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True, encoding='utf-8')
+            # subprocess (Non-Interactive)     stdout=subprocess.PIPE,stderr=subprocess.PIPE,
+            result = subprocess.run(command, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
             end_time = time.time()
             elapsed_time = (end_time - start_time) 
             
-            logger.info(result.stdout)
+            logger.info("Subprocess output:\n%s", result.stdout)
 
             json_file_path = os.path.join("/tmp/results/", package_name.lower() + ".json")
             
@@ -746,8 +744,8 @@ class Helper:
             read_command = f"cat {json_file_path}"
 
             json_result = subprocess.run(read_command, shell=True,
-                                         check=True, capture_output=True,
-                                         text=True, encoding='utf-8')
+                                         check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                         encoding='utf-8')
             json_data = json.loads(json_result.stdout)
             reports = Report.generate_report(json_data)
             
