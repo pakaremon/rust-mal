@@ -231,7 +231,8 @@ class MaliciousCodePackageAnalyzer(AbstractPackageAnalysis):
     """
     
     if which("bandit") is None:
-        return "Bandit is required but has not benn found!"
+        print(which("bandit"))
+        return "Bandit is required but has not been found!"
   
   def _isReleaseSupported(self, release: PackageRelease) -> bool:
     """

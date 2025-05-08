@@ -38,7 +38,9 @@ Create database
 
 ```bash
 python manage.py makemigrations
-python manage.py migrates
+python manage.py migrate
+# add static
+python manage.py collectstatic
 ```
 
 Using unicorn to run
@@ -56,6 +58,7 @@ gunicorn --bind 0.0.0.0:8000 \
          --workers 4 \
          --threads 2 \
          package_analysis_apk_web.wsgi:application
+
 
 ```
 
@@ -96,4 +99,15 @@ python setup.py install
 git rm -r --cached .
 git add .
 git commit -m "Update .gitignore"
+```
+
+# find bandit not found
+
+```bash
+ln -s ./web/package-analysis-web/venv/bin/bandit /usr/bin/bandit
+```
+
+# restart guniconr
+```bash
+sudo systemctl restart gunicorn
 ```
