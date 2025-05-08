@@ -103,8 +103,9 @@ git commit -m "Update .gitignore"
 
 # find bandit not found
 
+ Warrning: usign symbolic link will damage running dyanmic-analysis tool
 ```bash
-ln -s ./web/package-analysis-web/venv/bin/bandit /usr/bin/bandit
+sudo ln -s /home/rust-mal/web/package-analysis-web/venv/bin/bandit  /usr/local/bin/bandit
 ```
 
 # restart guniconr

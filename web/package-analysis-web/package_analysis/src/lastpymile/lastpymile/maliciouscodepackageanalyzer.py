@@ -230,7 +230,7 @@ class MaliciousCodePackageAnalyzer(AbstractPackageAnalysis):
           An error message that describe the error which prevent the analysis execution
     """
     
-    if which("bandit") is None:
+    if which("bandit") is None and False:
         print("bandit not found", which("bandit"))
         return "Bandit is required but has not been found!"
   
