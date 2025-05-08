@@ -3,7 +3,7 @@
         <header class="hero-section text-white text-center py-1">
             <div class="container">
                 <!-- color white -->
-                <h1 style="color: white;">Bandit4mal</h1>
+                <h1 style="color: black;">Bandit4mal</h1>
             </div>
         </header>
 
@@ -11,7 +11,7 @@
 
         <!-- Submission Form -->
         <section class="bg-white shadow rounded-lg p-4 mx-auto" style="max-width: 600px;">
-            <h2 class="h4 font-weight-bold text-dark mb-3">Submit a package to analyze using bandit4mal</h2>
+            <h2 class="h4 font-weight-bold text-dark mb-3">Submit a PyPI package to analyze using bandit4mal</h2>
             <form id="submitForm" method="post" onsubmit="event.preventDefault(); submitForm();"  action="{% url 'bandit4mal' %}">
                 {% csrf_token %}
                 <div class="form-group">            

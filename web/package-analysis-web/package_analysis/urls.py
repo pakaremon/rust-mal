@@ -7,6 +7,7 @@ urlpatterns = [
     path("", views.homepage, name="homepage"),
     path("contact/", views.contact, name="contact"),
     path("dashboard/", views.dashboard, name="dashboard"),
+    path("get_wolfi_packages/", views.get_wolfi_packages, name="get_wolfi_packages"),
     path("get_maven_packages/", views.get_maven_packages, name="get_maven_packages"),
     path("get_rust_packages/", views.get_rust_packages, name="get_rust_packages"),
     path("get_pypi_packages/", views.get_pypi_packages, name="get_pypi_packages"),

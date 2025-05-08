@@ -435,7 +435,7 @@ function displayReport(data) {
         feedbackPanel.innerHTML = `
             <div class="report-details card shadow-lg">
                 <div class="card-header bg-primary text-white">
-                    <h1 class="card-title">Report Detail</h1>
+                    <h1 class="card-title">Report</h1>
                 </div>
                 <div class="card-body">
                     <h2 class="h5">Source URLs</h2>

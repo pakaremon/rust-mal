@@ -259,6 +259,8 @@ def analyzed_samples(request):
 
     return render(request, 'package_analysis/analyzed_samples.html', {'packages': packages})
 
+def get_wolfi_packages(request):
+    return JsonResponse(Helper.get_wolfi_packages())
 
 def get_maven_packages(request):
     return JsonResponse(Helper.get_maven_packages())

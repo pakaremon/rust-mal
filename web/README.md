@@ -45,6 +45,19 @@ Using unicorn to run
 ```bash
 gunicorn --bind 0.0.0.0:8000 package_analysis_apk_web.wsgi:application
 ```
+```bash
+gunicorn --bind 0.0.0.0:8000 --timeout 300 --log-level debug package_analysis_apk_web.wsgi:application
+```
+
+```bash
+gunicorn --bind 0.0.0.0:8000 \
+         --timeout 300 \
+         --log-level debug \
+         --workers 4 \
+         --threads 2 \
+         package_analysis_apk_web.wsgi:application
+
+```
 
 Run on web server on port 80
 

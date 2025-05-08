@@ -254,6 +254,8 @@ document.addEventListener("DOMContentLoaded", () => {
                             return `${groupId}:${artifactId}`;
                         });
                     }).flat();
+                } else if (ecosystem.value === "wolfi") {
+                    package_names = packages.packages.packages;
                 }
 
                 if (value) {
@@ -291,7 +293,11 @@ document.addEventListener("DOMContentLoaded", () => {
                                     if (packages[groupId] && packages[groupId][artifactId]) {
                                         versions = packages[groupId][artifactId].slice().reverse();
                                     } 
+                                } else if (ecosystem.value === "wolfi") {
+                                    //version will be the package name
+                                    versions = [package_name];
                                 }
+                                
                                 versionSuggestions.innerHTML = ""; // Clear previous suggestions
                                 if (versions.length > 0) {
                                     versionSuggestions.style.display = "block"; // Show version suggestions

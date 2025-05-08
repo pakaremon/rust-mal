@@ -70,7 +70,7 @@ class Helper:
     
     @staticmethod
     @lru_cache(maxsize=1) 
-    def fetch_package_list():
+    def fetch_crates_package_list():
         root_path = Helper.find_root_path()
         INDEX_DIR = os.path.join(root_path, 'web', 'crates.io-index')
         if not os.path.exists(INDEX_DIR):
@@ -102,35 +102,7 @@ class Helper:
         print(f"Total number of crates: {len(crates_list.keys())}")
         return crates_list
     
-    @staticmethod
-    def search_apk(package_name):
-        raw_package_list = Helper.fetch_package_list()
-        package_repo_names = [pkg.replace('.apk', '') for pkg in raw_package_list]
 
-        package_repo_names = sorted(package_repo_names, key=lambda x: (x, len(x)))
-
-        for package in package_repo_names:
-            if package.startswith(package_name):
-                return Helper.download_apk(package)
-        
-        raise ValueError(f'apk {package_name} not found in wolfi registry.')
-
-    @staticmethod     
-    def download_apk(package_repo_name):
-        arch = "x86_64"
-        package_url = f"https://packages.wolfi.dev/os/{arch}/{package_repo_name}.apk"
-        # download the apk and save to temporary location and return the location of the apk
-        try:
-            response = requests.get(package_url)
-            response.raise_for_status()
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".apk") as temp_file:
-                temp_file.write(response.content)
-                return temp_file.name
-            print(f"Failed to download APK: {e}")
-            raise
-        except IOError as e:
-            print(f"Failed to write APK to file: {e}")
-            raise
 
     @staticmethod
     def get_latest_package_version(package_name, ecosystem):
@@ -212,9 +184,36 @@ class Helper:
         data = combine_json_files(os.path.join(current_path, 'resources', 'maven_package_names'))
 
         return data
+    
+    @staticmethod
+    def fetch_wolfi_package_list():
+        urls = [
+            "https://apk.dag.dev/https/packages.wolfi.dev/os/x86_64/APKINDEX.tar.gz/APKINDEX",
+            "https://apk.dag.dev/https/packages.cgr.dev/os/x86_64/APKINDEX.tar.gz/APKINDEX",
+            "https://apk.dag.dev/https/packages.cgr.dev/extras/x86_64/APKINDEX.tar.gz/APKINDEX"
+        ]
+        package_list = []
+        for url in urls:
+            response = requests.get(url)
+            package_list.extend(map(lambda x: x.removesuffix('.apk'), response.text.splitlines()))
+        return package_list
+        
 
+    @staticmethod
+    def get_wolfi_packages():
+
+        current_path = os.path.dirname(os.path.abspath(__file__))
+        wolfi_packages_path = os.path.join(current_path, 'resources', 'wolfi_package_names.json')
+        if os.path.exists(wolfi_packages_path):
+            with open(wolfi_packages_path, 'r') as file:
+                packages = json.load(file)
+            return {"packages": packages}
         
-        
+        package_list = Helper.fetch_wolfi_package_list()
+        with open(wolfi_packages_path, 'w') as file:
+            json.dump({"packages": package_list}, file)
+        return {"packages": package_list}
+
     @staticmethod       
     def get_rust_packages():
         current_path = os.path.dirname(os.path.abspath(__file__))
@@ -226,11 +225,11 @@ class Helper:
             return packages
         
         os.makedirs(os.path.dirname(rust_packages_path), exist_ok=True)
-        packages = Helper.fetch_package_list()
+        packages = Helper.fetch_crates_package_list()
         with open(rust_packages_path, 'w') as file:
             json.dump(packages, file)
             
-        packages =  Helper.fetch_package_list()
+        packages =  Helper.fetch_crates_package_list()
         return packages 
     
     @staticmethod

@@ -229,6 +229,7 @@ class MaliciousCodePackageAnalyzer(AbstractPackageAnalysis):
         Return (str):
           An error message that describe the error which prevent the analysis execution
     """
+    
     if which("bandit") is None:
         return "Bandit is required but has not benn found!"
   

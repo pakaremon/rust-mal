@@ -20,6 +20,7 @@ const (
 	PyPI      Ecosystem = "pypi"
 	RubyGems  Ecosystem = "rubygems"
 	Maven     Ecosystem = "maven"
+	Wolfi     Ecosystem = "wolfi"
 )
 
 // ErrUnsupported is returned by Ecosystem.UnmarshalText when bytes that do not
@@ -40,6 +41,7 @@ var SupportedEcosystems = []Ecosystem{
 	PyPI,
 	RubyGems,
 	Maven,
+	Wolfi,
 }
 
 // SupportedEcosystemsStrings is the list of supported ecosystems represented as

@@ -29,6 +29,7 @@ var (
 		packagistPkgManager.ecosystem: &packagistPkgManager,
 		cratesPkgManager.ecosystem:    &cratesPkgManager,
 		mavenPkgManager.ecosystem:     &mavenPkgManager,
+		wolfiPkgManager.ecosystem:     &wolfiPkgManager,
 	}
 )
 

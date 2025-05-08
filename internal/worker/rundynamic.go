@@ -55,9 +55,16 @@ type DynamicAnalysisResult struct {
 func dynamicPhases(ecosystem pkgecosystem.Ecosystem) []analysisrun.DynamicPhase {
 	phases := analysisrun.DefaultDynamicPhases()
 
-	// currently, the execute phase is only supported for python analysis
+	if ecosystem == pkgecosystem.Wolfi {
+		phases = []analysisrun.DynamicPhase{
+			analysisrun.DynamicPhaseInstall,
+		}
+	}
+
+	// currently, the execute phase is only supported for python analysis, wolfi
 	executePhaseSupported := map[pkgecosystem.Ecosystem]struct{}{
-		pkgecosystem.PyPI: {},
+		pkgecosystem.PyPI:  {},
+		pkgecosystem.Wolfi: {},
 	}
 
 	if featureflags.CodeExecution.Enabled() {
