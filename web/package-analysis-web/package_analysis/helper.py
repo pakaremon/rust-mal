@@ -338,8 +338,8 @@ class Helper:
         local_path = Helper.find_root_path() + '/web/package-analysis-web' + file_path
         report = Helper.run_package_analysis(package_name, package_version, ecosystem, local_path=local_path)
         # delete local file after analysis
-        # if os.path.exists(local_path):
-            # os.remove(local_path)
+        if os.path.exists(local_path):
+            os.remove(local_path)
         return report
 
     @staticmethod
