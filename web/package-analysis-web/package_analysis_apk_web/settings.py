@@ -26,7 +26,8 @@ SECRET_KEY = 'django-insecure-1u3=v8*@$#ny04l7wdd4&kflsxd5m2djh%a+ochns(ovj#7#ra
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['20.81.41.235', '127.0.0.1', 'packguard.dev']
+ALLOWED_HOSTS = ['20.81.41.235', '127.0.0.1', 'packguard.dev', 
+                 'www.packguard.dev', '20.171.9.155']
 
 
 # Application definition
