@@ -252,9 +252,7 @@ class MaliciousCodePackageAnalyzer(AbstractPackageAnalysis):
         Return (bool):
           True if the file is supported, False otherwise
     """
-    # ensure a valid file not a directory
-    if os.path.isdir(file_descriptor.getFileName()):
-      return False
+
     
     return file_descriptor.getFileName().endswith((
       ".py", ".js"
@@ -286,6 +284,8 @@ class MaliciousCodePackageAnalyzer(AbstractPackageAnalysis):
             continue
         git_fd=GitFileDescriptor(repository,commit.hexsha,cmt_file)
         if self.__isProcessableFile(git_fd):
+          if os.path.isdir(os.path.join(repository.getRepositoryFolder(),cmt_file)):
+            continue
           file_hash=self.__computeFileHash(os.path.join(repository.getRepositoryFolder(),cmt_file))
           source_files_hashes[file_hash]=git_fd
           processed_files+=1
