@@ -252,6 +252,10 @@ class MaliciousCodePackageAnalyzer(AbstractPackageAnalysis):
         Return (bool):
           True if the file is supported, False otherwise
     """
+    # ensure a valid file not a directory
+    if os.path.isdir(file_descriptor.getFileName()):
+      return False
+    
     return file_descriptor.getFileName().endswith((
       ".py", ".js"
     ))
