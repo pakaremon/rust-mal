@@ -112,3 +112,32 @@ sudo ln -s /home/rust-mal/web/package-analysis-web/venv/bin/bandit  /usr/local/b
 ```bash
 sudo systemctl restart gunicorn
 ```
+
+## debug log
+```bash
+ sudo journalctl -u gunicorn --since today
+```
+
+# debug dynamic-analysis
+
+```bash
+docker run --rm --privileged -it --entrypoint /bin/sh -v "$PWD":/app pakaremon/dynamic-analysis:latest
+```
+
+### run from existing docker container
+
+```bash
+docker exec -it 01a7ebf9c9b4 /bin/sh
+```
+
+### fix node -e erroe
+```bash
+export NODE_PATH=/usr/lib/node_modules
+```
+
+## Build melange apk
+
+```bash
+ docker run --rm --privileged -v "${PWD}:/work" cgr.dev/chainguard/melange build solana_web3.yaml
+
+```

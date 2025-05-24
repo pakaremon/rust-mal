@@ -1,0 +1,47 @@
+{% extends "package_analysis/homepage/homepage_layout.html" %}   
+{% block body%}
+        <header class="hero-section text-center py-1">
+            <div class="container">
+                <!-- color white -->
+                <h1 >Malcontent</h1>
+            </div>
+        </header>
+        <!-- Submission Form -->
+        <section class="bg-white shadow rounded-lg p-4 mx-auto" style="max-width: 600px;">
+            <h2 class="h4 font-weight-bold text-dark mb-3">Submit a package to find source code</h2>
+            <form id="submitForm" method="post" onsubmit="event.preventDefault(); submitForm();"  action="{% url 'malcontent' %}">
+            {% csrf_token %}
+            <div class="form-group">
+                {{ form.ecosystem.label_tag }}
+                {{ form.ecosystem }}
+            </div>
+            <div class="form-group">
+                {{ form.package_name.label_tag }}
+                {{ form.package_name }}
+            </div>
+            <div class="form-group">
+                <div class="suggestions" id="suggestions"></div>
+                {{ form.package_version.label_tag }}
+                {{ form.package_version }}
+                <div class="version-suggestions" id="version-suggestions"></div>
+            </div>
+            <!-- Submit Button -->
+           <br> 
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary">
+                    Analyze Package
+                </button>
+            </div>
+            </form>
+        </section>
+        <!-- Loader -->
+        <div id="loader" class="position-fixed w-100 h-100 top-0 start-0 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center z-50 d-none" >
+            <div class="spinner"></div>
+        </div>
+
+
+        <!-- Analysis Feedback Panel -->
+        <section id="feedback-panel" class="mt-4 d-none">
+        </section>
+
+{% endblock %}

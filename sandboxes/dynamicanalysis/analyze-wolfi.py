@@ -73,7 +73,7 @@ def install(apk):
 
 
 def execute_apk(apk):
-    if not apk.execute_arg().startswith('solana_web3.js'):
+    if not apk.execute_arg().startswith('solana-web3'):
         
         if apk.is_local_path():
             folder_execute = '/usr/local/bin/'
@@ -119,23 +119,38 @@ def execute_apk(apk):
 
     else:
     
-        js_code = """const { Account } = require('solana-web3.js/lib/index.browser.cjs.js');
-                    const crypto = require('crypto');
-
+        js_code = """const crypto = require('crypto');
+                    // Function to generate a random 32-byte secret key
                     function generateRandomSecretKey() {
-                    return crypto.randomBytes(32).toString('hex');
+                    return crypto.randomBytes(64); // 32-byte secret key
                     }
+                    // Dynamically load the Solana library from the given path
 
                     try {
-                    // Example usage
+                    // Load the Account class from solana-web3.js
+                    const { Account } = require("solana-web3.js/lib/index.browser.cjs.js");
+
+                    // Generate a random 32-byte secret key
                     const randomSecretKey = generateRandomSecretKey();
+
+                    // Verify that the generated secret key is 32 bytes
+                    if (randomSecretKey.length !== 64) {
+                        throw new Error('Secret key must be exactly 32 bytes.');
+                    }
+
+                    console.log('Generated Secret Key length:', randomSecretKey.length);
+                    // Create a new Account using the generated secret key
                     const account = new Account(randomSecretKey);
 
+                    // Output the Public and Secret Keys in hex format
                     console.log('Public Key:', account._publicKey.toString('hex'));
-                    console.log('Secret Key:', account._secretKey.toString('hex'));
+                    console.log('Secret Key:', Buffer.from(account._secretKey).toString('hex'));
+
                     } catch (error) {
+                    // Log the error if something goes wrong
                     console.error('An error occurred:', error.message);
-                    }"""
+                    }
+                    """
         
         try:
             output = subprocess.check_output(

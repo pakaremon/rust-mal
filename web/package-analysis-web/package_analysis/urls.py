@@ -38,6 +38,8 @@ urlpatterns = [
     path("bandit4mal/", views.bandit4mal, name="bandit4mal"),
     # dynamic analysis of the package.
     path("dynamic_analysis/", views.dynamic_analysis, name="dynamic_analysis"),
+    # malcontentpath("malcontent/", views.malcontent, name="malcontent"),ath("malcontent/", views.malcontent, name="malcontent"),"malcontent/", views.malcontent, name="malcontent",("malcontent/", views.malcontent, name="malcontent"),
+    path("malcontent/", views.malcontent, name="malcontent"),
     # LastPyMile
     path("lastpymile/", views.lastpymile, name="lastpymile"),
     path("report/<int:report_id>/", views.report_detail, name="report"),

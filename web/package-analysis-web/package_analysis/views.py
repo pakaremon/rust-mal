@@ -72,6 +72,19 @@ def dynamic_analysis(request):
     form = PackageSubmitForm()
     return render(request, 'package_analysis/analysis/dynamic_analysis.html', {'form': form}) 
 
+def malcontent(request):
+    if request.method == 'POST':
+        form = PackageSubmitForm(request.POST)
+        if form.is_valid():
+            package_name = form.cleaned_data['package_name']
+            package_version = form.cleaned_data['package_version']
+            ecosystem = form.cleaned_data['ecosystem']
+            
+            reports = Helper.run_malcontent(package_name, package_version, ecosystem)
+            return JsonResponse({"malcontent_report": reports})
+    form = PackageSubmitForm()
+    return render(request, 'package_analysis/analysis/malcontent.html', {'form': form})
+
 def lastpymile(request):
     if request.method == 'POST':
         print("lastpymile Post ^^^^")

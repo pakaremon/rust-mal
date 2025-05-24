@@ -21,7 +21,7 @@ from .src.utils import log_function_output
 from .src.py2src.py2src.url_finder import  GetFinalURL, URLFinder
 from .src.internal.pkgmanager.package import pkg
 from .src.lastpymile.lastpymile.utils import Utils
-
+from .src.yara.yara_manager import YaraRuleManager
 
 current_path = os.path.dirname(os.path.abspath(__file__))
 log_file = os.path.join(current_path, 'logs', 'helper.log')
@@ -639,7 +639,22 @@ class Helper:
         Utils.rmtree(download_directory)
         return report
 
+    @staticmethod 
+    def run_malcontent(package_name, package_version, ecosystem):
+        '''
+        example : docker run --rm -v "${PWD}:/tmp" cgr.dev/chainguard/malcontent --format=json -o save_file --min-risk=high analyze /tmp/solana-web3.js-1.95.14.tar.gz
+        '''
 
+        pkg_manager = pkg(package_name, package_version, ecosystem).manager
+        # Check version exists
+        specific_package = pkg_manager.package(package_name, package_version)
+        print(f"Specific package: {specific_package}")
+        download_directory = os.path.join(tempfile.gettempdir(), 'malcontent_downloaded')
+        os.makedirs(download_directory, exist_ok=True)
+        archive_path = pkg_manager.download_archive(package_name, package_version, download_directory)
+        print(f"Downloaded archive to: {archive_path}")
+
+        pass 
 
     @staticmethod
     def run_lastpymile(package_name, package_version=None, ecosystem='pypi'):
@@ -919,8 +934,6 @@ class Report:
             if command is not None:
                 results['execute']['commands'].append(command.get('Command'))
         
-
-
         # pattern = re.compile(r'^Enter:\s*([\w]+)')
         pattern = re.compile(r'^Enter:\s*(.*)')
         for syscall in execution_phase.get('Syscalls', []):
@@ -928,5 +941,68 @@ class Report:
                 match = pattern.match(syscall)
                 if match:
                     results['execute']['syscalls'].append(match.group(1))
+
+        # Add Yara analysis
+        try:
+            from .src.yara.yara_manager import YaraRuleManager
+            yara_manager = YaraRuleManager()
+            
+            commands = [' '.join(cmd) for cmd in results['install']['commands']]
+            commands.extend([' '.join(cmd) for cmd in results['execute']['commands']])
+            # Convert commands to string for Yara analysis
+            command_text = '\n'.join([
+                cmd for cmd in commands
+                if isinstance(cmd, str)
+            ])
+            
+            # Convert DNS entries to string for Yara analysis
+            dns_text = '\n'.join([
+                dns for dns in results['install']['dns'] + results['execute']['dns']
+                if isinstance(dns, str)
+            ])
+            
+            # Convert system calls to string for Yara analysis
+            syscall_text = '\n'.join([
+                syscall for syscall in results['install']['syscalls'] + results['execute']['syscalls']
+                if isinstance(syscall, str)
+            ])
+            
+            # Analyze with Yara rules
+            command_matches = yara_manager.analyze_behavior(command_text)
+            network_matches = yara_manager.analyze_behavior(dns_text)
+            syscall_matches = yara_manager.analyze_behavior(syscall_text)
+            
+            # ref: https://github.com/chainguard-dev/malcontent/blob/9ede1b235b0b21cef84ff5d1bc075b68f651401f/pkg/report/report.go#L380
+
+            #         {
+            # "category": "command",
+            # "rule": "suspicious_shell",
+            # "strings": ["$s1: \"curl http://x.x.x.x/m.sh\" at 0x42"],
+            # "severity": "high",
+            # "metadata": {
+            #     "description": "Detects suspicious shell commands"
+            # }
+            # }
+ 
+            # Add Yara results to report
+            results['yara_analysis'] = {
+                'command_matches': [{
+                    'rule': match.rule,
+                    'strings': [str(s) for s in match.strings]
+                } for match in command_matches],
+                'network_matches': [{
+                    'rule': match.rule,
+                    'strings': [str(s) for s in match.strings]
+                } for match in network_matches],
+                'syscall_matches': [{
+                    'rule': match.rule,
+                    'strings': [str(s) for s in match.strings]
+                } for match in syscall_matches]
+            }
+
+            logger.info(results['yara_analysis'])
+        except ImportError:
+            # If Yara analysis is not available, continue without it
+            pass
         
         return results

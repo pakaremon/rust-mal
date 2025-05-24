@@ -169,6 +169,27 @@ function getCookie(name) {
 }
 
 function populateDynamicSections(combinedReport) {
+    // Populate Yara Section
+    const yaraContent = document.getElementById('yara-content');
+    // Clear existing content
+    yaraContent.innerHTML = '';
+    
+    // Combine all Yara matches from different categories
+    const allYaraMatches = [
+        ...(combinedReport.yara.command_matches || []),
+        ...(combinedReport.yara.network_matches || []),
+        ...(combinedReport.yara.syscall_matches || [])
+    ];
+
+    allYaraMatches.forEach((match, index) => {
+        yaraContent.innerHTML += `
+            <tr>
+                <td>${index + 1}</td>
+                <td>${match.rule}</td>
+                <td>${match.strings.join(', ')}</td>
+            </tr>
+        `;
+    });
     // Populate Files
     ['read', 'write', 'delete'].forEach(type => {
         const filesContent = document.getElementById('files-content');
@@ -260,7 +281,8 @@ function displayDynamicReport(data) {
                 }, {})
         )
         .sort((a, b) => b[1] - a[1]) // Sort by occurrence in descending order
-        .map(([syscall]) => syscall) // Extract only the syscall names
+        .map(([syscall]) => syscall), // Extract only the syscall names,
+        yara: data.dynamic_analysis_report.yara_analysis
     };
 
     populateDynamicSections(combinedReport);

@@ -110,6 +110,32 @@
 
         <!-- Analysis Feedback Panel -->
 <div id="feedback-panel" class="container mt-4 d-none">
+    <!-- Yara Section  -->
+    <div class="card mb-3" style="border-left: 5px solid rgb(103, 120, 103);">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Yara Analysis</h5>
+            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#yara-table" aria-expanded="false" aria-controls="yara-table">
+                Toggle
+            </button>
+        </div>
+        <div id="yara-table" class="collapse">
+            <div class="card-body">
+                <table class="table table-striped table-bordered">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Rule</th>
+                            <th>Strings</th>
+                        </tr>
+                    </thead>
+                    <tbody id="yara-content">
+                        <!-- Dynamic content will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
     <!-- Files Section -->
     <div class="card mb-3" style="border-left: 5px solid lightgreen;">
         <div class="card-header d-flex justify-content-between align-items-center">
