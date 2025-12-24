@@ -697,6 +697,30 @@ Add:
 }
 ```
 
+### Set up Systemd service for Celery
+
+```bash
+ot@edu-vps-sgp1:/etc/systemd/system# cat /etc/systemd/system/celery.service 
+[Unit]
+Description=Celery Worker for Packamal
+After=network.target redis-server.service
+# If you use RabbitMQ, change redis-server.service to rabbitmq-server.service
+
+[Service]
+Type=forking
+User=packamal
+Group=packamal
+WorkingDirectory=/opt/packamal/app/web/packamal
+#EnvironmentFile=/etc/conf.d/celery
+ExecStart=/opt/packamal/venv/bin/celery -A packamal worker --loglevel=INFO --concurrency=1 --detach --pidfile=/run/celery/worker.pid
+#ExecStop=/opt/packamal/venv/bin/celery control shutdown
+#PIDFile=/run/celery/worker.pid
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+
 ### Set Up Systemd Service for Gunicorn
 
 Create systemd service file:
